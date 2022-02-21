@@ -6,10 +6,12 @@ import numpy as np
 import utils
 from numba import njit
 
-@njit
-def _run(X, Y, D0, eta0, lambda_reg, K, nb_iterations):
+
+@njit(fastmath=True)
+def _run(X, Y, D0, eta0, lambda_reg, K, nb_iterations, verbose):
     weights = np.zeros((X.shape[0],), dtype=X.dtype)
     eps = utils.objective_func(X, Y, lambda_reg, weights)
+    objs = []
     D = D0 * eps
     eta = eta0 * eps / 3
 
@@ -21,10 +23,18 @@ def _run(X, Y, D0, eta0, lambda_reg, K, nb_iterations):
             weights -= eta * grad
             weights = utils.project(center, D, weights)
             avgw += weights / nb_iterations
+            if verbose and _ % 50 == 0:
+                objs.append(
+                    (
+                        nb_iterations * k + _,
+                        utils.objective_func(X, Y, lambda_reg, weights),
+                    )
+                )
         weights = np.copy(avgw)
         eta, D = eta / 2, D / 2
 
-    return weights
+    return weights, objs
+
 
 class Optimizer:
     """Documentation
@@ -41,33 +51,16 @@ class Optimizer:
         self.eta0 = eta0
         self.lambda_reg = lambda_reg
         self.verbose = verbose
-    
-    # @profile(immediate = True)
+
     def run(self, X, Y):
-        weights = _run(X, Y, self.D0, self.eta0, self.lambda_reg, self.K, self.nb_iterations)
-        return weights
-
-    def runnn(self, X, Y):
-        """Runs the optimization process
-        :type verbose: bool
-        :param verbose: If true, prints advance of the process in the console
-        :return: solution of the problem
-        """
-        weights = np.zeros((X.shape[0],), dtype=X.dtype)
-
-        eps = utils.objective_func(X, Y, self.lambda_reg, weights)
-        D = self.D0 * eps
-        eta = self.eta0 * eps / 3
-
-        for k in range(self.K):
-            center = np.copy(weights)
-            avgw = np.zeros_like(weights)
-            for _ in range(self.nb_iterations):
-                grad = utils.objective_grad(X, Y, self.lambda_reg, weights)
-                weights -= eta * grad
-                weights = utils.project(center, D, weights)
-                avgw += weights / self.nb_iterations
-            weights = np.copy(avgw)
-            eta, D = eta / 2, D / 2
-
-        return weights
+        weights, objs = _run(
+            X,
+            Y,
+            self.D0,
+            self.eta0,
+            self.lambda_reg,
+            self.K,
+            self.nb_iterations,
+            self.verbose,
+        )
+        return weights, objs

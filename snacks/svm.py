@@ -14,9 +14,15 @@ class Snacks:
         self.nb_iterations = nb_iterations
         self.lambda_reg = lambda_reg
         self.stepsize = stepsize
+        self.objs = None
 
     def fit(self, Xtr, Ytr):
-        self.weights = Optimizer(nb_iterations = self.nb_iterations, lambda_reg = self.lambda_reg, eta0 = self.stepsize).run(Xtr.T, Ytr.T)
+        self.weights, self.objs = Optimizer(
+            nb_iterations=self.nb_iterations,
+            lambda_reg=self.lambda_reg,
+            eta0=self.stepsize,
+            verbose=self.verbose,
+        ).run(Xtr.T, Ytr.T)
         return self
 
     def decision_function(self, Xts):

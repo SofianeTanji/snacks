@@ -1,4 +1,5 @@
 datasets/
+figures/
 .vscode/
 ./snacks/__pycache__
 ./pegasos/__pycache__
