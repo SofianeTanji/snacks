@@ -13,6 +13,7 @@ import time
 import os
 import sys
 
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 sys.path.append("../")
 
@@ -40,7 +41,7 @@ def prepare_data(data, num_centers, gamma, full):
         )
 
     Xtr, Ytr, Xts, Yts = utils.kernel_embedding(
-        Xtr, Ytr, Xts, Yts, num_centers, full, gamma=gamma
+        Xtr, Ytr, Xts, Yts, num_centers, gamma=gamma
     )
 
     return Xtr, Ytr, Xts, Yts
@@ -48,6 +49,10 @@ def prepare_data(data, num_centers, gamma, full):
 # %%
 def run_snacks(Xtr, Ytr, Xts, Yts, nb_iterations, lambda_reg, stepsize):
     print("Snacks' performance : ")
+    # first we precompile snacks
+    empty = Snacks(nb_iterations=1, lambda_reg=1,stepsize = 1)
+    empty.fit(Xtr,Ytr)
+
     model = Snacks(
         nb_iterations=nb_iterations, lambda_reg=lambda_reg, stepsize=stepsize
     )
@@ -77,11 +82,11 @@ def run_sklearn(Xtr, Ytr, Xts, Yts, lambda_reg):
 def run_thundersvm(Xtr, Ytr, Xts, Yts, lambda_reg):
     print("ThunderSVM's performance : ")
     C = 1 / (2 * Xtr.shape[0] * lambda_reg)
-    model = SVC(C=C)
+    tsvm = SVC(C=C, verbose = True)
     ts = time.time()
-    model.fit(Xtr, Ytr)
+    tsvm.fit(Xtr, Ytr)
     te = time.time()
-    score = model.score(Xts, Yts)
+    score = tsvm.score(Xts, Yts)
     print(f"in {(te - ts):.2f}s, C-err is {100 - score * 100:.2f}%")
     t_fit, score = te - ts, 1 - score
     return t_fit, score
