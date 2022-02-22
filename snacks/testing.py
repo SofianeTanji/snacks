@@ -39,7 +39,8 @@ def prepare_data(data, num_centers, gamma, full):
         print(
             f"You asked for dataset {data} while Snacks only support a9a, SUSY and HIGGS"
         )
-
+    if full:
+        return Xtr, Ytr, Xts, Yts
     Xtr, Ytr, Xts, Yts = utils.kernel_embedding(
         Xtr, Ytr, Xts, Yts, num_centers, gamma=gamma
     )
@@ -82,7 +83,7 @@ def run_sklearn(Xtr, Ytr, Xts, Yts, lambda_reg):
 def run_thundersvm(Xtr, Ytr, Xts, Yts, lambda_reg):
     print("ThunderSVM's performance : ")
     C = 1 / (2 * Xtr.shape[0] * lambda_reg)
-    tsvm = SVC(C=C, verbose = True)
+    tsvm = SVC(gamma = 1e-1, C=C, verbose = True)
     ts = time.time()
     tsvm.fit(Xtr, Ytr)
     te = time.time()
@@ -116,8 +117,10 @@ def run_pegasos(Xtr, Ytr, Xts, Yts, nb_iterations, lambda_reg):
 Xtr, Ytr, Xts, Yts = prepare_data("a9a", 1400, 1e-1, False)
 run_snacks(Xtr, Ytr, Xts, Yts, 45000, 1e-5, 1.0)
 run_sklearn(Xtr, Ytr, Xts, Yts, 1e-5)
-run_thundersvm(Xtr, Ytr, Xts, Yts, 1e-5)
 run_pegasos(Xtr, Ytr, Xts, Yts, 45000 * 3, 1e-5)
+
+Xtr, Ytr, Xts, Yts = prepare_data("a9a", None, None, True)
+run_thundersvm(Xtr, Ytr, Xts, Yts, 1e-1, 1e-5)
 
 # %% [markdown]
 # Snacks' performance : 
