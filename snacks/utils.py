@@ -55,6 +55,12 @@ def dataloader(datafile, train_size):
     Xtr, Xts, Ytr, Yts = train_test_split(
         X, y, train_size=train_size, random_state=SEED
     )
+    m = np.mean(Xtr)
+    s = np.std(Xtr)
+    Xtr -= m
+    Xtr /= s
+    Xts -= m
+    Xts /= s
     Xtr, Xts, Ytr, Yts = (
         Xtr.astype("float32"),
         Xts.astype("float32"),
