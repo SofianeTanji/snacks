@@ -324,7 +324,10 @@ if __name__ == "__main__":
     elif route == "grid_search_snacks":
         print("Grid Search Snacks")
         ts = time.perf_counter()
-        grid_search_map(data, 0.8, 35000, 1000, 5, arrg, arr_l)
+        if data == "a9a":
+            grid_search_map(data, 0.8, 35000, 1000, 5, arrg, arr_l)
+        elif data == "SUSY":
+            grid_search_map(data, 0.8, 35000, 2500, 5, arrg, arr_l)
         te = time.perf_counter()
         print(f"Benchmarking done in {(te - ts):.2f} seconds")
     elif route == "cerr_m_lmbd":
