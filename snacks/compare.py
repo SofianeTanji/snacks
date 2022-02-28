@@ -34,7 +34,7 @@ def run_pegasos(Xtr, Ytr, Xts, Yts, nb_iterations, lambda_reg):
 def run_sklearn(Xtr, Ytr, Xts, Yts, lambda_reg):
     print("SKLearn's performance : ")
     C = 1 / (2 * Xtr.shape[0] * lambda_reg)
-    model = svm.LinearSVC(C=C)
+    model = svm.LinearSVC(C=C, loss = "hinge")
     ts = time.perf_counter()
     model.fit(Xtr, Ytr)
     te = time.perf_counter()
@@ -70,7 +70,6 @@ def run_thundersvm(Xtr, Ytr, Xts, Yts, lambda_reg):
     t_fit, score = te - ts, 1 - score
     return t_fit, score
 
-
 def compare(dataset):
     """Compares"""
     values = {
@@ -99,7 +98,7 @@ def compare(dataset):
     
     solution[0][1] = f"{np.mean(np.array(scores))} ± {np.std(np.array(scores))}"
     solution[0][2] = f"{np.mean(np.array(times))} ± {np.std(np.array(times))}"
-    print(tabulate(solution, headers=["Method", "Accuracy", "Time"]))
+    print(tabulate(solution, headers=["Method", "Accuracy", "Time"], tablefmt="github"))
 
     # LibSVM
     scores, times = [], []
@@ -111,20 +110,20 @@ def compare(dataset):
     
     solution[1][1] = f"{np.mean(np.array(scores))} ± {np.std(np.array(scores))}"
     solution[1][2] = f"{np.mean(np.array(times))} ± {np.std(np.array(times))}"
-    print(tabulate(solution, headers=["Method", "Accuracy", "Time"]))
+    print(tabulate(solution, headers=["Method", "Accuracy", "Time"], tablefmt="github"))
 
     # Pegasos
     scores, times = [], []
     for i_run in range(5):
         print(f"Pegasos : run {i_run + 1}/5")
-        t_fit, score = run_pegasos(Xtr, Ytr, Xts, Yts, 120000 * 3, values[dataset][1])
+        t_fit, score = run_pegasos(Xtr, Ytr, Xts, Yts, 210000 * 3, values[dataset][1])
         scores.append(score)
         times.append(t_fit)
     
     solution[2][1] = f"{np.mean(np.array(scores, dtype = np.float32))} ± {np.std(np.array(scores, dtype = np.float32))}"
     solution[2][2] = f"{np.mean(np.array(times, dtype = np.float32))} ± {np.std(np.array(times, dtype = np.float32))}"
-    print(tabulate(solution, headers=["Method", "Accuracy", "Time"]))
-
+    print(tabulate(solution, headers=["Method", "Accuracy", "Time"], tablefmt="github"))
+    
     # ThunderSVM
     scores, times = [], []
     for i_run in range(5):
@@ -135,8 +134,7 @@ def compare(dataset):
     
     solution[4][1] = f"{np.mean(np.array(scores, dtype = np.float32))} ± {np.std(np.array(scores, dtype = np.float32))}"
     solution[4][2] = f"{np.mean(np.array(times, dtype = np.float32))} ± {np.std(np.array(times, dtype = np.float32))}"
-    print(tabulate(solution, headers=["Method", "Accuracy", "Time"]))
-
+    print(tabulate(solution, headers=["Method", "Accuracy", "Time"], tablefmt="github"))
 
 
 if __name__ == "__main__":
