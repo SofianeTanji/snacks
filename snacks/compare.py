@@ -70,6 +70,18 @@ def run_thundersvm(Xtr, Ytr, Xts, Yts, lambda_reg):
     t_fit, score = te - ts, 1 - score
     return t_fit, score
 
+def run_liquidsvm(Xtr, Ytr, Xts, Yts, lambda_reg):
+    print("ThunderSVM's performance : ")
+    C = 1 / (2 * Xtr.shape[0] * lambda_reg)
+    tsvm = SVC(gamma = 1e-1, C=C, verbose = True)
+    ts = time.time()
+    tsvm.fit(Xtr, Ytr)
+    te = time.time()
+    score = tsvm.score(Xts, Yts)
+    print(f"in {(te - ts):.2f}s, C-err is {100 - score * 100:.2f}%")
+    t_fit, score = te - ts, 1 - score
+    return t_fit, score
+
 def compare(dataset):
     """Compares"""
     values = {
@@ -96,8 +108,8 @@ def compare(dataset):
         scores.append(score)
         times.append(t_fit)
     
-    solution[0][1] = f"{np.mean(np.array(scores))} ± {np.std(np.array(scores))}"
-    solution[0][2] = f"{np.mean(np.array(times))} ± {np.std(np.array(times))}"
+    solution[0][1] = f"{np.round(np.mean(np.array(scores)), 4)} ± {np.round(np.std(np.array(scores)), 4)}"
+    solution[0][2] = f"{np.round(np.mean(np.array(times)), 4)} ± {np.round(np.std(np.array(times)), 4)}"
     print(tabulate(solution, headers=["Method", "Accuracy", "Time"], tablefmt="github"))
 
     # LibSVM
@@ -108,8 +120,8 @@ def compare(dataset):
         scores.append(score)
         times.append(t_fit)
     
-    solution[1][1] = f"{np.mean(np.array(scores))} ± {np.std(np.array(scores))}"
-    solution[1][2] = f"{np.mean(np.array(times))} ± {np.std(np.array(times))}"
+    solution[1][1] = f"{np.round(np.mean(np.array(scores)), 4)} ± {np.round(np.std(np.array(scores)), 4)}"
+    solution[1][2] = f"{np.round(np.mean(np.array(times)), 4)} ± {np.round(np.std(np.array(times)), 4)}"
     print(tabulate(solution, headers=["Method", "Accuracy", "Time"], tablefmt="github"))
 
     # Pegasos
@@ -120,23 +132,34 @@ def compare(dataset):
         scores.append(score)
         times.append(t_fit)
     
-    solution[2][1] = f"{np.mean(np.array(scores, dtype = np.float32))} ± {np.std(np.array(scores, dtype = np.float32))}"
-    solution[2][2] = f"{np.mean(np.array(times, dtype = np.float32))} ± {np.std(np.array(times, dtype = np.float32))}"
+    solution[2][1] = f"{np.round(np.mean(np.array(scores)), 4)} ± {np.round(np.std(np.array(scores)), 4)}"
+    solution[2][2] = f"{np.round(np.mean(np.array(times)), 4)} ± {np.round(np.std(np.array(times)), 4)}"
     print(tabulate(solution, headers=["Method", "Accuracy", "Time"], tablefmt="github"))
     
     # ThunderSVM
     scores, times = [], []
     for i_run in range(5):
-        print(f"ThunnderSVM : run {i_run + 1}/5")
-        t_fit, score = run_thundersvm(Xtr, Ytr, Xts, Yts, 120000 * 3, values[dataset][1])
+        print(f"ThunderSVM : run {i_run + 1}/5")
+        t_fit, score = run_thundersvm(Xtr, Ytr, Xts, Yts, values[dataset][1])
         scores.append(score)
         times.append(t_fit)
     
-    solution[4][1] = f"{np.mean(np.array(scores, dtype = np.float32))} ± {np.std(np.array(scores, dtype = np.float32))}"
-    solution[4][2] = f"{np.mean(np.array(times, dtype = np.float32))} ± {np.std(np.array(times, dtype = np.float32))}"
+    solution[4][1] = f"{np.round(np.mean(np.array(scores)), 4)} ± {np.round(np.std(np.array(scores)), 4)}"
+    solution[4][2] = f"{np.round(np.mean(np.array(times)), 4)} ± {np.round(np.std(np.array(times)), 4)}"
     print(tabulate(solution, headers=["Method", "Accuracy", "Time"], tablefmt="github"))
-
-
+    """
+    # LiquidSVM
+    scores, times = [], []
+    for i_run in range(5):
+        print(f"LiquidSVM : run {i_run + 1}/5")
+        t_fit, score = run_liquidsvm(Xtr, Ytr, Xts, Yts, 120000 * 3, values[dataset][1])
+        scores.append(score)
+        times.append(t_fit)
+    
+    solution[3][1] = f"{np.round(np.mean(np.array(scores)), 4)} ± {np.round(np.std(np.array(scores)), 4)}"
+    solution[3][2] = f"{np.round(np.mean(np.array(times)), 4)} ± {np.round(np.std(np.array(times)), 4)}"
+    print(tabulate(solution, headers=["Method", "Accuracy", "Time"], tablefmt="github"))
+    """
 if __name__ == "__main__":
     dataset = str(sys.argv[1])
     print(f"Dataset {dataset} chosen")
