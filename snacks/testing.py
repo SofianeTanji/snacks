@@ -9,6 +9,7 @@
 
 # %%
 import utils
+import numpy as np
 import time
 import os
 import sys
@@ -23,6 +24,7 @@ from svm import Snacks
 from pegasos import PegasosSVMClassifier
 from sklearn import svm
 from thundersvm import SVC
+import liquidSVM as liq
 
 # %% [markdown]
 # #### Utility functions for benchmarking
@@ -48,12 +50,9 @@ def prepare_data(data, num_centers, gamma, full):
     return Xtr, Ytr, Xts, Yts
 
 # %%
-def run_snacks(Xtr, Ytr, Xts, Yts, nb_iterations, lambda_reg, stepsize):
-    print("Snacks' performance : ")
-    # first we precompile snacks
-    empty = Snacks(nb_iterations=1, lambda_reg=1,stepsize = 1)
-    empty.fit(Xtr,Ytr)
-
+def run_snacks(Xtr, Ytr, Xts, Yts, nb_iterations, lambda_reg, stepsize, verbose = True):
+    if verbose:
+        print("Snacks' performance : ")
     model = Snacks(
         nb_iterations=nb_iterations, lambda_reg=lambda_reg, stepsize=stepsize
     )
@@ -61,9 +60,9 @@ def run_snacks(Xtr, Ytr, Xts, Yts, nb_iterations, lambda_reg, stepsize):
     model.fit(Xtr, Ytr)
     te = time.time()
     score = model.score(Xts, Yts)
-    print(f"in {(te - ts):.2f}s, C-err is {100 - score * 100:.2f}%")
+    if verbose:
+        print(f"in {(te - ts):.2f}s, C-err is {100 - score * 100:.2f}%")
     tr_score = model.score(Xtr, Ytr)
-    print(f"also, train error is {100 - tr_score * 100:.2f}%")
     t_fit, score = te - ts, 1 - score
     return t_fit, score
 
@@ -80,10 +79,10 @@ def run_sklearn(Xtr, Ytr, Xts, Yts, lambda_reg):
     t_fit, score = te - ts, 1 - score
     return t_fit, score
 
-def run_thundersvm(Xtr, Ytr, Xts, Yts, lambda_reg):
+def run_thundersvm(Xtr, Ytr, Xts, Yts, gamma, lambda_reg):
     print("ThunderSVM's performance : ")
     C = 1 / (2 * Xtr.shape[0] * lambda_reg)
-    tsvm = SVC(gamma = 1e-1, C=C, verbose = True)
+    tsvm = SVC(gamma = gamma, C=C, verbose = False)
     ts = time.time()
     tsvm.fit(Xtr, Ytr)
     te = time.time()
@@ -92,6 +91,17 @@ def run_thundersvm(Xtr, Ytr, Xts, Yts, lambda_reg):
     t_fit, score = te - ts, 1 - score
     return t_fit, score
 
+def run_liquidsvm(Xtr, Ytr, Xts, Yts):
+    print("LiquidSVM's performance : ")
+    ts = time.time()
+    liqsvm = liq.SVM(data = Xtr, labs = Ytr, display = 1)
+    te = time.time()
+    print(Ytr)
+    print(Yts)
+    res, err = liqsvm.test(Xts, Yts)
+    print(f"in {(te - ts):.2f}s, C-err is {err:.2f}%")
+    t_fit, score = te - ts, err
+    return t_fit, score
 
 def run_pegasos(Xtr, Ytr, Xts, Yts, nb_iterations, lambda_reg):
     print("Pegasos' performance : ")
@@ -103,7 +113,6 @@ def run_pegasos(Xtr, Ytr, Xts, Yts, nb_iterations, lambda_reg):
     score = model.score(Xts, Yts)
     print(f"in {(te - ts):.2f}s, C-err is {100 - score * 100:.2f}%")
     tr_score = model.score(Xtr, Ytr)
-    print(f"also, train error is {100 - tr_score * 100:.2f}%")
     t_fit, score = te - ts, 1 - score
     return t_fit, score
 
@@ -114,14 +123,16 @@ def run_pegasos(Xtr, Ytr, Xts, Yts, nb_iterations, lambda_reg):
 # ##### a9a
 
 # %%
-Xtr, Ytr, Xts, Yts = prepare_data("a9a", 1400, 1e-1, False)
+print("Data building")
+Xtr, Ytr, Xts, Yts = prepare_data("a9a", 30, 1e-1, False)
+run_snacks(Xtr[:5], Ytr[:5], Xts[:5], Ytr[:5], 3, 1e-5, 1.0, False)
 run_snacks(Xtr, Ytr, Xts, Yts, 45000, 1e-5, 1.0)
 run_sklearn(Xtr, Ytr, Xts, Yts, 1e-5)
-run_pegasos(Xtr, Ytr, Xts, Yts, 45000 * 3, 1e-5)
-
+run_pegasos(Xtr, Ytr, Xts, Yts, 85000 * 3, 1e-5)
+print("Data loading bis")
 Xtr, Ytr, Xts, Yts = prepare_data("a9a", None, None, True)
 run_thundersvm(Xtr, Ytr, Xts, Yts, 1e-1, 1e-5)
-
+run_liquidsvm(Xtr, Ytr, Xts, Yts)
 # %% [markdown]
 # Snacks' performance : 
 # in 0.43s, C-err is 15.33%
@@ -132,15 +143,19 @@ run_thundersvm(Xtr, Ytr, Xts, Yts, 1e-1, 1e-5)
 
 # %% [markdown]
 # ##### SUSY
+"""
+Xtr, Ytr, Xts, Yts = prepare_data("SUSY", None, None, True)
+run_thundersvm(Xtr, Ytr, Xts, Yts, (1/32), 3e-6)
 
 # %%
-# Xtr, Ytr, Xts, Yts = prepare_data("SUSY", 1050, (1 / (2 * 4 * 4)), True)
+Xtr, Ytr, Xts, Yts = prepare_data("SUSY", 2500, (1 / (2 * 4 * 4)), False)
 
 # %%
-# run_snacks(Xtr, Ytr, Xts, Yts, 35000, 3e-6, 0.5)
-# run_sklearn(Xtr, Ytr, Xts, Yts, 1e-5)
-# run_pegasos(Xtr, Ytr, Xts, Yts, 8000000 * 3, 3e-6)
-
+# run_snacks(Xtr, Ytr, Xts, Yts, 1, 3e-6, 0.5)
+# run_snacks(Xtr, Ytr, Xts, Yts, 45000, 3e-6, 1.)
+run_sklearn(Xtr, Ytr, Xts, Yts, 3e-6)
+run_pegasos(Xtr, Ytr, Xts, Yts, 100000 * 3, 3e-6)
+"""
 # %% [markdown]
 # 45s to load SUSY dataset (5e6 X 18)
 # SKLearn's performance : 
