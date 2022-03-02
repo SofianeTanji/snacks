@@ -51,19 +51,7 @@ def dataloader(datafile, train_size):
     Xtr, Xts, Ytr, Yts = train_test_split(
         X, y, train_size=train_size
     )
-    m = np.mean(Xtr)
-    s = np.std(Xtr)
-    Xtr -= m
-    Xtr /= s
-    Xts -= m
-    Xts /= s
-    Xtr, Xts, Ytr, Yts = (
-        Xtr.astype("float32"),
-        Xts.astype("float32"),
-        Ytr.astype("float32"),
-        Yts.astype("float32"),
-    )
-    return Xtr, Xts, Ytr, Yts
+    return X, y, Xtr, Xts, Ytr, Yts
 
 def kernel_embedding(Xtr, Ytr, Xts, Yts, num_centers, **kernel_params):
     """Documentation"""
