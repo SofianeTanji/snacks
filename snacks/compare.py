@@ -34,7 +34,7 @@ def run_pegasos(Xtr, Ytr, Xts, Yts, nb_iterations, lambda_reg):
 def run_sklearn(Xtr, Ytr, Xts, Yts, gamma, lambda_reg):
     print("SKLearn's performance : ")
     C = 1 / (2 * Xtr.shape[0] * lambda_reg)
-    model = svm.SVC(C=C, gamma = gamma)
+    model = svm.SVC()
     ts = time.perf_counter()
     model.fit(Xtr, Ytr)
     te = time.perf_counter()
