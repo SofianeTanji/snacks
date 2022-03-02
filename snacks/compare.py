@@ -63,7 +63,7 @@ def run_snacks(Xtr, Ytr, Xts, Yts, nb_iterations, lambda_reg, stepsize):
 def run_thundersvm(Xtr, Ytr, Xts, Yts, lambda_reg):
     print("ThunderSVM's performance : ")
     C = 1 / (2 * Xtr.shape[0] * lambda_reg)
-    tsvm = SVC(gamma = 1e-1, C=C, verbose = True)
+    tsvm = SVC(gamma = 1e-1, C=C)
     ts = time.time()
     tsvm.fit(Xtr, Ytr)
     te = time.time()
@@ -96,11 +96,11 @@ def compare(dataset, nb_runs):
         "HIGGS": [3e-2, 3e-8, 1.2e5] # à recalibrer
     }
     solution = [
-        ["Snacks", None, None, None],
-        ["LibSVM", None, None, None],
-        ["Pegasos", None, None, None],
-        ["ThunderSVM", None, None, None],
-        ["LiquidSVM", None, None, None]
+        ["Snacks - on subset", None, None, None],
+        ["LibSVM - on full", None, None, None],
+        ["Pegasos - on subset", None, None, None],
+        ["ThunderSVM - on full", None, None, None],
+        ["LiquidSVM - on full", None, None, None]
     ]
     oXtr, oXts, oYtr, oYts = utils.dataloader(dataset, 0.8)
     Xtr, Ytr, Xts, Yts = utils.kernel_embedding(oXtr, oYtr, oXts, oYts, values[dataset][2], gamma=values[dataset][0])
