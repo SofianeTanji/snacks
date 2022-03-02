@@ -24,12 +24,12 @@ def run_pegasos(Xtr, Ytr, Xts, Yts, nb_iterations, lambda_reg):
     ts = time.perf_counter()
     model.fit(Xtr, Ytr)
     te = time.perf_counter()
-    score = model.score(Xts, Yts)
-    print(f"in {(te - ts):.2f}s, C-err is {100 - score * 100:.2f}%")
+    ts_score = model.score(Xts, Yts)
+    print(f"in {(te - ts):.2f}s, C-err is {100 - ts_score * 100:.2f}%")
     tr_score = model.score(Xtr, Ytr)
     print(f"also, train error is {100 - tr_score * 100:.2f}%")
-    t_fit, score = te - ts, 1 - score
-    return t_fit, score
+    t_fit, tr_score, ts_score = te - ts, 1 - tr_score, 1 - ts_score
+    return t_fit, tr_score, ts_score
 
 def run_sklearn(Xtr, Ytr, Xts, Yts, lambda_reg):
     print("SKLearn's performance : ")
@@ -38,10 +38,12 @@ def run_sklearn(Xtr, Ytr, Xts, Yts, lambda_reg):
     ts = time.perf_counter()
     model.fit(Xtr, Ytr)
     te = time.perf_counter()
-    score = model.score(Xts, Yts)
-    print(f"in {(te - ts):.2f}s, C-err is {100 - score * 100:.2f}%")
-    t_fit, score = te - ts, 1 - score
-    return t_fit, score
+    ts_score = model.score(Xts, Yts)
+    print(f"in {(te - ts):.2f}s, C-err is {100 - ts_score * 100:.2f}%")
+    tr_score = model.score(Xtr, Ytr)
+    print(f"also, train error is {100 - tr_score * 100:.2f}%")
+    t_fit, tr_score, ts_score = te - ts, 1 - tr_score, 1 - ts_score
+    return t_fit, tr_score, ts_score
 
 def run_snacks(Xtr, Ytr, Xts, Yts, nb_iterations, lambda_reg, stepsize):
     print("Snacks' performance : ")
@@ -51,12 +53,12 @@ def run_snacks(Xtr, Ytr, Xts, Yts, nb_iterations, lambda_reg, stepsize):
     ts = time.perf_counter()
     model.fit(Xtr, Ytr)
     te = time.perf_counter()
-    score = model.score(Xts, Yts)
-    print(f"in {(te - ts):.2f}s, C-err is {100 - score * 100:.2f}%")
+    ts_score = model.score(Xts, Yts)
+    print(f"in {(te - ts):.2f}s, C-err is {100 - ts_score * 100:.2f}%")
     tr_score = model.score(Xtr, Ytr)
     print(f"also, train error is {100 - tr_score * 100:.2f}%")
-    t_fit, score = te - ts, 1 - score
-    return t_fit, score
+    t_fit, tr_score, ts_score = te - ts, 1 - tr_score, 1 - ts_score
+    return t_fit, tr_score, ts_score
 
 def run_thundersvm(Xtr, Ytr, Xts, Yts, lambda_reg):
     print("ThunderSVM's performance : ")
@@ -65,24 +67,28 @@ def run_thundersvm(Xtr, Ytr, Xts, Yts, lambda_reg):
     ts = time.time()
     tsvm.fit(Xtr, Ytr)
     te = time.time()
-    score = tsvm.score(Xts, Yts)
-    print(f"in {(te - ts):.2f}s, C-err is {100 - score * 100:.2f}%")
-    t_fit, score = te - ts, 1 - score
-    return t_fit, score
+    ts_score = tsvm.score(Xts, Yts)
+    print(f"in {(te - ts):.2f}s, C-err is {100 - ts_score * 100:.2f}%")
+    tr_score = tsvm.score(Xtr, Ytr)
+    print(f"also, train error is {100 - tr_score * 100:.2f}%")
+    t_fit, tr_score, ts_score = te - ts, 1 - tr_score, 1 - ts_score
+    return t_fit, tr_score, ts_score
 
 def run_liquidsvm(Xtr, Ytr, Xts, Yts, lambda_reg):
     print("ThunderSVM's performance : ")
     C = 1 / (2 * Xtr.shape[0] * lambda_reg)
-    tsvm = SVC(gamma = 1e-1, C=C, verbose = True)
+    model = SVC(gamma = 1e-1, C=C, verbose = True)
     ts = time.time()
-    tsvm.fit(Xtr, Ytr)
+    model.fit(Xtr, Ytr)
     te = time.time()
-    score = tsvm.score(Xts, Yts)
-    print(f"in {(te - ts):.2f}s, C-err is {100 - score * 100:.2f}%")
-    t_fit, score = te - ts, 1 - score
-    return t_fit, score
+    ts_score = model.score(Xts, Yts)
+    print(f"in {(te - ts):.2f}s, C-err is {100 - ts_score * 100:.2f}%")
+    tr_score = model.score(Xtr, Ytr)
+    print(f"also, train error is {100 - tr_score * 100:.2f}%")
+    t_fit, tr_score, ts_score = te - ts, 1 - tr_score, 1 - ts_score
+    return t_fit, tr_score, ts_score
 
-def compare(dataset):
+def compare(dataset, nb_runs):
     """Compares"""
     values = {
         "a9a": [1e-3, 1e-6, 1000],
@@ -90,77 +96,83 @@ def compare(dataset):
         "HIGGS": [3e-2, 3e-8, 1.2e5] # à recalibrer
     }
     solution = [
-        ["Snacks", None, None],
-        ["LibSVM", None, None],
-        ["Pegasos", None, None],
-        ["LiquidSVM", None, None],
-        ["ThunderSVM", None, None]
+        ["Snacks", None, None, None],
+        ["LibSVM", None, None, None],
+        ["Pegasos", None, None, None],
+        ["ThunderSVM", None, None, None],
+        ["LiquidSVM", None, None, None]
     ]
     oXtr, oXts, oYtr, oYts = utils.dataloader(dataset, 0.8)
     Xtr, Ytr, Xts, Yts = utils.kernel_embedding(oXtr, oYtr, oXts, oYts, values[dataset][2], gamma=values[dataset][0])
     run_snacks(Xtr, Ytr, Xts, Yts, 3, 1e-7, 1.)
 
     # SNACKS
-    scores, times = [], []
-    for i_run in range(5):
+    tr_scores, ts_scores, times = [], []
+    for i_run in range(nb_runs):
         print(f"Snacks : run {i_run + 1}/5")
-        t_fit, score = run_snacks(Xtr, Ytr, Xts, Yts, 35000, values[dataset][1], 1.)
-        scores.append(score)
+        t_fit, tr_score, ts_score = run_snacks(Xtr, Ytr, Xts, Yts, 35000, values[dataset][1], 1.)
+        tr_scores.append(tr_score)
+        ts_scores.append(ts_score)
         times.append(t_fit)
     
-    solution[0][1] = f"{np.round(np.mean(np.array(scores)), 4)} ± {np.round(np.std(np.array(scores)), 4)}"
-    solution[0][2] = f"{np.round(np.mean(np.array(times)), 4)} ± {np.round(np.std(np.array(times)), 4)}"
-    print(tabulate(solution, headers=["Method", "Accuracy", "Time"], tablefmt="github"))
+    solution[0][1] = f"{np.round(np.mean(np.array(tr_scores)), 4)} ± {np.round(np.std(np.array(tr_scores)), 4)}"
+    solution[0][2] = f"{np.round(np.mean(np.array(ts_scores)), 4)} ± {np.round(np.std(np.array(ts_scores)), 4)}"
+    solution[0][3] = f"{np.round(np.mean(np.array(times)), 4)} ± {np.round(np.std(np.array(times)), 4)}"
+    print(tabulate(solution, headers=["Method", "Accuracy on Train", "Accuracy on Test", "Time"], tablefmt="github"))
 
     # LibSVM
     scores, times = [], []
-    for i_run in range(5):
+    for i_run in range(nb_runs):
         print(f"Scikit-Learn : run {i_run + 1}/5")
         t_fit, score = run_sklearn(Xtr, Ytr, Xts, Yts, values[dataset][1])
         scores.append(score)
         times.append(t_fit)
     
-    solution[1][1] = f"{np.round(np.mean(np.array(scores)), 4)} ± {np.round(np.std(np.array(scores)), 4)}"
-    solution[1][2] = f"{np.round(np.mean(np.array(times)), 4)} ± {np.round(np.std(np.array(times)), 4)}"
-    print(tabulate(solution, headers=["Method", "Accuracy", "Time"], tablefmt="github"))
+    solution[1][1] = f"{np.round(np.mean(np.array(tr_scores)), 4)} ± {np.round(np.std(np.array(tr_scores)), 4)}"
+    solution[1][2] = f"{np.round(np.mean(np.array(ts_scores)), 4)} ± {np.round(np.std(np.array(ts_scores)), 4)}"
+    solution[1][3] = f"{np.round(np.mean(np.array(times)), 4)} ± {np.round(np.std(np.array(times)), 4)}"
+    print(tabulate(solution, headers=["Method", "Accuracy on Train", "Accuracy on Test", "Time"], tablefmt="github"))
 
     # Pegasos
     scores, times = [], []
-    for i_run in range(5):
+    for i_run in range(nb_runs):
         print(f"Pegasos : run {i_run + 1}/5")
         t_fit, score = run_pegasos(Xtr, Ytr, Xts, Yts, 210000 * 3, values[dataset][1])
         scores.append(score)
         times.append(t_fit)
     
-    solution[2][1] = f"{np.round(np.mean(np.array(scores)), 4)} ± {np.round(np.std(np.array(scores)), 4)}"
-    solution[2][2] = f"{np.round(np.mean(np.array(times)), 4)} ± {np.round(np.std(np.array(times)), 4)}"
-    print(tabulate(solution, headers=["Method", "Accuracy", "Time"], tablefmt="github"))
+    solution[2][1] = f"{np.round(np.mean(np.array(tr_scores)), 4)} ± {np.round(np.std(np.array(tr_scores)), 4)}"
+    solution[2][2] = f"{np.round(np.mean(np.array(ts_scores)), 4)} ± {np.round(np.std(np.array(ts_scores)), 4)}"
+    solution[2][3] = f"{np.round(np.mean(np.array(times)), 4)} ± {np.round(np.std(np.array(times)), 4)}"
+    print(tabulate(solution, headers=["Method", "Accuracy on Train", "Accuracy on Test", "Time"], tablefmt="github"))
     
     # ThunderSVM
     scores, times = [], []
-    for i_run in range(5):
+    for i_run in range(nb_runs):
         print(f"ThunderSVM : run {i_run + 1}/5")
         t_fit, score = run_thundersvm(Xtr, Ytr, Xts, Yts, values[dataset][1])
         scores.append(score)
         times.append(t_fit)
     
-    solution[4][1] = f"{np.round(np.mean(np.array(scores)), 4)} ± {np.round(np.std(np.array(scores)), 4)}"
-    solution[4][2] = f"{np.round(np.mean(np.array(times)), 4)} ± {np.round(np.std(np.array(times)), 4)}"
-    print(tabulate(solution, headers=["Method", "Accuracy", "Time"], tablefmt="github"))
+    solution[3][1] = f"{np.round(np.mean(np.array(tr_scores)), 4)} ± {np.round(np.std(np.array(tr_scores)), 4)}"
+    solution[3][2] = f"{np.round(np.mean(np.array(ts_scores)), 4)} ± {np.round(np.std(np.array(ts_scores)), 4)}"
+    solution[3][3] = f"{np.round(np.mean(np.array(times)), 4)} ± {np.round(np.std(np.array(times)), 4)}"
+    print(tabulate(solution, headers=["Method", "Accuracy on Train", "Accuracy on Test", "Time"], tablefmt="github"))
     """
     # LiquidSVM
     scores, times = [], []
-    for i_run in range(5):
+    for i_run in range(nb_runs):
         print(f"LiquidSVM : run {i_run + 1}/5")
-        t_fit, score = run_liquidsvm(Xtr, Ytr, Xts, Yts, 120000 * 3, values[dataset][1])
+        t_fit, score = run_liquidsvm(Xtr, Ytr, Xts, Yts, values[dataset][1])
         scores.append(score)
         times.append(t_fit)
     
-    solution[3][1] = f"{np.round(np.mean(np.array(scores)), 4)} ± {np.round(np.std(np.array(scores)), 4)}"
-    solution[3][2] = f"{np.round(np.mean(np.array(times)), 4)} ± {np.round(np.std(np.array(times)), 4)}"
-    print(tabulate(solution, headers=["Method", "Accuracy", "Time"], tablefmt="github"))
+    solution[4][1] = f"{np.round(np.mean(np.array(tr_scores)), 4)} ± {np.round(np.std(np.array(tr_scores)), 4)}"
+    solution[4][2] = f"{np.round(np.mean(np.array(ts_scores)), 4)} ± {np.round(np.std(np.array(ts_scores)), 4)}"
+    solution[4][3] = f"{np.round(np.mean(np.array(times)), 4)} ± {np.round(np.std(np.array(times)), 4)}"
+    print(tabulate(solution, headers=["Method", "Accuracy on Train", "Accuracy on Test", "Time"], tablefmt="github"))
     """
 if __name__ == "__main__":
     dataset = str(sys.argv[1])
     print(f"Dataset {dataset} chosen")
-    compare(dataset)
+    compare(dataset, 1)
