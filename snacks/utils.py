@@ -43,15 +43,15 @@ def project(center, radius, weights):
         weights = center + np.float32(radius / dist) * (weights - center)
     return weights
 
+
 def dataloader(datafile, train_size):
     datafile = "../datasets/" + datafile
     data = load_svmfile(datafile)
     X, y = data[0], data[1]
     X, y = X.toarray(), y
-    Xtr, Xts, Ytr, Yts = train_test_split(
-        X, y, train_size=train_size
-    )
+    Xtr, Xts, Ytr, Yts = train_test_split(X, y, train_size=train_size)
     return X, y, Xtr, Xts, Ytr, Yts
+
 
 def kernel_embedding(Xtr, Ytr, Xts, Yts, num_centers, **kernel_params):
     """Documentation"""

@@ -2,12 +2,10 @@ from svm import Snacks
 import seaborn as sns
 import time
 import sys
-from sklearn import svm
 from sklearn.linear_model import RidgeClassifier
 from itertools import product
 import utils
 import numpy as np
-import matplotlib.pyplot as plt
 
 SEABORN_STYLE = {
     "figure.facecolor": "white",
@@ -47,9 +45,12 @@ def cerr_vs_m(
     cerrs_vs_m = []
     for m in arr_m:
         m = int(m)
+        print(f"m = {m}, let's go ! ")
         Xtr, Ytr, Xts, Yts = utils.kernel_embedding(
             oXtr, oYtr, oXts, oYts, m, gamma=gamma
         )
+        empty = odel = Snacks(nb_iterations=3, lambda_reg=lambda_reg, stepsize=stepsize)
+        empty.fit(Xtr, Ytr)
         scores = []
         for n in range(nb_runs):
             model = Snacks(
@@ -103,14 +104,7 @@ def cerr_vs_lmbd(
 
 
 def cerr_m_lmbd(
-    dataset,
-    train_size,
-    gamma,
-    nb_iterations,
-    nb_runs,
-    stepsize,
-    arr_m,
-    arr_l,
+    dataset, train_size, gamma, nb_iterations, nb_runs, stepsize, arr_m, arr_l,
 ):
     oXtr, oXts, oYtr, oYts = utils.dataloader(dataset, train_size)
 
@@ -144,12 +138,7 @@ def cerr_m_lmbd(
 
 
 def heatmap(
-    dataset,
-    train_size,
-    gamma,
-    nb_runs,
-    arr_m,
-    arr_l,
+    dataset, train_size, gamma, nb_runs, arr_m, arr_l,
 ):
     oXtr, oXts, oYtr, oYts = utils.dataloader(dataset, train_size)
 
@@ -181,7 +170,7 @@ def heatmap(
 
 
 def grid_search_map(
-    dataset, train_size, nb_iterations, m, nb_runs, arr_gamma, arr_lambda
+    arr_lambda, dataset, train_size, nb_iterations, m, nb_runs, arr_gamma
 ):
     oXtr, oXts, oYtr, oYts = utils.dataloader(dataset, train_size)
 
@@ -244,24 +233,11 @@ def grid_search_krr(dataset, train_size, m, nb_runs, arr_gamma, arr_lambda):
     return Cerr, arr_gamma, arr_lambda
 
 
-def comparison():
-    # On fait les benchmarks sur SUSY ensuite on avise.
-    pass
-
-
 def obj_vs_it(
-    dataset,
-    train_size,
-    gamma,
-    m,
-    lmbd,
-    stepsize,
-    nb_iterations,
+    dataset, train_size, gamma, m, lmbd, stepsize, nb_iterations,
 ):
     # Empty run snacks
-    empty = model = Snacks(
-        nb_iterations=5, lambda_reg=lmbd, stepsize=stepsize, verbose=False
-    )
+    empty = Snacks(nb_iterations=5, lambda_reg=lmbd, stepsize=stepsize, verbose=False)
     oXtr, oXts, oYtr, oYts = utils.dataloader(dataset, train_size)
     Xtr, Ytr, _, _ = utils.kernel_embedding(oXtr, oYtr, oXts, oYts, m, gamma=gamma)
     model = Snacks(
@@ -292,15 +268,17 @@ if __name__ == "__main__":
     data = str(sys.argv[2])
 
     if data not in ["a9a", "SUSY", "HIGGS"]:
-        raise ValueError("Please provide one of the following values : a9a, SUSY, HIGGS")
+        raise ValueError(
+            "Please provide one of the following values : a9a, SUSY, HIGGS"
+        )
 
     arr_m = np.array([10, 20, 50, 100, 150, 200, 300, 500, 750, 1000, 1500, 2000])
     arr_l = np.array(
         [1e-9, 5e-9, 1e-8, 5e-8, 1e-7, 5e-7, 1e-6, 1e-5, 5e-5, 1e-4, 5e-4, 1e-3]
     )
-    
+
     arrg = np.logspace(-5, -1, 12)
-    arrm = np.linspace(100, 3000, 40)
+    arrm = np.linspace(100, 2200, 5)
     arrl = np.logspace(-9, -1, 40)
 
     if route == "obj_vs_it":  # peut en avoir une plus jolie
@@ -325,9 +303,9 @@ if __name__ == "__main__":
         print("Grid Search Snacks")
         ts = time.perf_counter()
         if data == "a9a":
-            grid_search_map(data, 0.8, 35000, 1000, 5, arrg, arr_l)
+            grid_search_map(arr_l, data, 0.8, 35000, 1000, 5, arrg)
         elif data == "SUSY":
-            grid_search_map(data, 0.8, 35000, 2500, 5, arrg, arr_l)
+            grid_search_map(arr_l, data, 0.8, 35000, 2500, 5, arrg)
         te = time.perf_counter()
         print(f"Benchmarking done in {(te - ts):.2f} seconds")
     elif route == "cerr_m_lmbd":

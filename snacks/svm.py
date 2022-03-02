@@ -4,6 +4,7 @@ import numpy as np
 from sklearn.base import BaseEstimator
 from optimizer import Optimizer
 
+
 class Snacks:
     """Documentation"""
 
@@ -20,7 +21,7 @@ class Snacks:
             nb_iterations=self.nb_iterations,
             lambda_reg=self.lambda_reg,
             eta0=self.stepsize,
-            verbose=self.verbose
+            verbose=self.verbose,
         ).run(Xtr.T, Ytr.T)
         return self
 
@@ -42,13 +43,13 @@ class Snacks:
 class MyEstimator(BaseEstimator):
     def __init__(self, subestimator):
         self.subestimator = subestimator
-    
+
     def fit(self, Xtr, Ytr):
         self.subestimator.fit(Xtr, Ytr)
         return self
-    
+
     def predict(self, Xts):
         return self.subestimator.predict(Xts)
-    
+
     def score(self, Xts, Yts):
         return 100 - 100 * self.subestimator.score(Xts, Yts)
