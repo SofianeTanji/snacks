@@ -3,14 +3,11 @@
 
 import random
 
-SEED = 1999
-random.seed(SEED)
 import sys
 import numpy as np
 
-np.random.seed(SEED)
 from sklearn.model_selection import train_test_split
-from sklearn.datasets import load_svmlight_file
+from svmloader import load_svmfile
 from sklearn.metrics.pairwise import pairwise_kernels
 from scipy.linalg import sqrtm, inv
 import numba
@@ -46,14 +43,13 @@ def project(center, radius, weights):
         weights = center + np.float32(radius / dist) * (weights - center)
     return weights
 
-
 def dataloader(datafile, train_size):
     datafile = "../datasets/" + datafile
-    data = load_svmlight_file(datafile)
+    data = load_svmfile(datafile)
     X, y = data[0], data[1]
     X, y = X.toarray(), y
     Xtr, Xts, Ytr, Yts = train_test_split(
-        X, y, train_size=train_size, random_state=SEED
+        X, y, train_size=train_size
     )
     m = np.mean(Xtr)
     s = np.std(Xtr)
@@ -68,7 +64,6 @@ def dataloader(datafile, train_size):
         Yts.astype("float32"),
     )
     return Xtr, Xts, Ytr, Yts
-
 
 def kernel_embedding(Xtr, Ytr, Xts, Yts, num_centers, **kernel_params):
     """Documentation"""
