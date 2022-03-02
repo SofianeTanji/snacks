@@ -109,7 +109,7 @@ def compare(dataset, nb_runs):
     # SNACKS
     tr_scores, ts_scores, times = [], [], []
     for i_run in range(nb_runs):
-        print(f"Snacks : run {i_run + 1}/5")
+        print(f"Snacks : run {i_run + 1}/{nb_runs}")
         t_fit, tr_score, ts_score = run_snacks(Xtr, Ytr, Xts, Yts, 35000, values[dataset][1], 1.)
         tr_scores.append(tr_score)
         ts_scores.append(ts_score)
@@ -123,7 +123,7 @@ def compare(dataset, nb_runs):
     # LibSVM
     tr_scores, ts_scores, times = [], [], []
     for i_run in range(nb_runs):
-        print(f"Scikit-Learn : run {i_run + 1}/5")
+        print(f"Scikit-Learn : run {i_run + 1}/{nb_runs}")
         t_fit, score = run_sklearn(Xtr, Ytr, Xts, Yts, values[dataset][1])
         scores.append(score)
         times.append(t_fit)
@@ -136,7 +136,7 @@ def compare(dataset, nb_runs):
     # Pegasos
     tr_scores, ts_scores, times = [], [], []
     for i_run in range(nb_runs):
-        print(f"Pegasos : run {i_run + 1}/5")
+        print(f"Pegasos : run {i_run + 1}/{nb_runs}")
         t_fit, score = run_pegasos(Xtr, Ytr, Xts, Yts, 210000 * 3, values[dataset][1])
         scores.append(score)
         times.append(t_fit)
@@ -149,7 +149,7 @@ def compare(dataset, nb_runs):
     # ThunderSVM
     tr_scores, ts_scores, times = [], [], []
     for i_run in range(nb_runs):
-        print(f"ThunderSVM : run {i_run + 1}/5")
+        print(f"ThunderSVM : run {i_run + 1}/{nb_runs}")
         t_fit, score = run_thundersvm(Xtr, Ytr, Xts, Yts, values[dataset][1])
         scores.append(score)
         times.append(t_fit)
@@ -162,7 +162,7 @@ def compare(dataset, nb_runs):
     # LiquidSVM
     tr_scores, ts_scores, times = [], [], []
     for i_run in range(nb_runs):
-        print(f"LiquidSVM : run {i_run + 1}/5")
+        print(f"LiquidSVM : run {i_run + 1}/{nb_runs}")
         t_fit, score = run_liquidsvm(Xtr, Ytr, Xts, Yts, values[dataset][1])
         scores.append(score)
         times.append(t_fit)
