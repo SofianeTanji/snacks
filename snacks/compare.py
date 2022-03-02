@@ -19,7 +19,6 @@ import numpy as np
 
 def run_pegasos(Xtr, Ytr, Xts, Yts, nb_iterations, lambda_reg):
     print("Pegasos' performance : ")
-    C = 1 / (2 * Xtr.shape[0] * lambda_reg)
     model = PegasosSVMClassifier(iterations=nb_iterations, lambda_reg=lambda_reg)
     ts = time.perf_counter()
     model.fit(Xtr, Ytr)
@@ -122,7 +121,7 @@ def compare(dataset, nb_runs):
 
     # LibSVM
     tr_scores, ts_scores, times = [], [], []
-    for i_run in range(nb_runs):
+    for i_run in range(1):
         print(f"Scikit-Learn : run {i_run + 1}/{nb_runs}")
         t_fit, tr_score, ts_score = run_sklearn(oXtr, oYtr, oXts, oYts, values[dataset][0], values[dataset][1])
         tr_scores.append(tr_score)
@@ -138,7 +137,7 @@ def compare(dataset, nb_runs):
     tr_scores, ts_scores, times = [], [], []
     for i_run in range(nb_runs):
         print(f"Pegasos : run {i_run + 1}/{nb_runs}")
-        t_fit, tr_score, ts_score = run_pegasos(Xtr, Ytr, Xts, Yts, 310000 * 3, values[dataset][1])
+        t_fit, tr_score, ts_score = run_pegasos(Xtr, Ytr, Xts, Yts, 300000, values[dataset][1])
         tr_scores.append(tr_score)
         ts_scores.append(ts_score)
         times.append(t_fit)
@@ -179,4 +178,4 @@ def compare(dataset, nb_runs):
 if __name__ == "__main__":
     dataset = str(sys.argv[1])
     print(f"Dataset {dataset} chosen")
-    compare(dataset, 1)
+    compare(dataset, 10)
