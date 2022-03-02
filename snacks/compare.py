@@ -124,8 +124,9 @@ def compare(dataset, nb_runs):
     tr_scores, ts_scores, times = [], [], []
     for i_run in range(nb_runs):
         print(f"Scikit-Learn : run {i_run + 1}/{nb_runs}")
-        t_fit, score = run_sklearn(Xtr, Ytr, Xts, Yts, values[dataset][1])
-        scores.append(score)
+        t_fit, tr_score, ts_score = run_sklearn(Xtr, Ytr, Xts, Yts, values[dataset][1])
+        tr_scores.append(tr_score)
+        ts_scores.append(ts_score)
         times.append(t_fit)
     
     solution[1][1] = f"{np.round(np.mean(np.array(tr_scores)), 4)} ± {np.round(np.std(np.array(tr_scores)), 4)}"
@@ -137,8 +138,9 @@ def compare(dataset, nb_runs):
     tr_scores, ts_scores, times = [], [], []
     for i_run in range(nb_runs):
         print(f"Pegasos : run {i_run + 1}/{nb_runs}")
-        t_fit, score = run_pegasos(Xtr, Ytr, Xts, Yts, 210000 * 3, values[dataset][1])
-        scores.append(score)
+        t_fit, tr_score, ts_score = run_pegasos(Xtr, Ytr, Xts, Yts, 210000 * 3, values[dataset][1])
+        tr_scores.append(tr_score)
+        ts_scores.append(ts_score)
         times.append(t_fit)
     
     solution[2][1] = f"{np.round(np.mean(np.array(tr_scores)), 4)} ± {np.round(np.std(np.array(tr_scores)), 4)}"
@@ -150,8 +152,9 @@ def compare(dataset, nb_runs):
     tr_scores, ts_scores, times = [], [], []
     for i_run in range(nb_runs):
         print(f"ThunderSVM : run {i_run + 1}/{nb_runs}")
-        t_fit, score = run_thundersvm(Xtr, Ytr, Xts, Yts, values[dataset][1])
-        scores.append(score)
+        t_fit, tr_score, ts_score = run_thundersvm(Xtr, Ytr, Xts, Yts, values[dataset][1])
+        tr_scores.append(tr_score)
+        ts_scores.append(ts_score)
         times.append(t_fit)
     
     solution[3][1] = f"{np.round(np.mean(np.array(tr_scores)), 4)} ± {np.round(np.std(np.array(tr_scores)), 4)}"
@@ -163,8 +166,9 @@ def compare(dataset, nb_runs):
     tr_scores, ts_scores, times = [], [], []
     for i_run in range(nb_runs):
         print(f"LiquidSVM : run {i_run + 1}/{nb_runs}")
-        t_fit, score = run_liquidsvm(Xtr, Ytr, Xts, Yts, values[dataset][1])
-        scores.append(score)
+        t_fit, tr_score, ts_score = run_liquidsvm(Xtr, Ytr, Xts, Yts, values[dataset][1])
+        tr_scores.append(tr_score)
+        ts_scores.append(ts_score)
         times.append(t_fit)
     
     solution[4][1] = f"{np.round(np.mean(np.array(tr_scores)), 4)} ± {np.round(np.std(np.array(tr_scores)), 4)}"
