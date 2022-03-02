@@ -107,7 +107,7 @@ def compare(dataset, nb_runs):
     run_snacks(Xtr, Ytr, Xts, Yts, 3, 1e-7, 1.)
 
     # SNACKS
-    tr_scores, ts_scores, times = [], []
+    tr_scores, ts_scores, times = [], [], []
     for i_run in range(nb_runs):
         print(f"Snacks : run {i_run + 1}/5")
         t_fit, tr_score, ts_score = run_snacks(Xtr, Ytr, Xts, Yts, 35000, values[dataset][1], 1.)
@@ -121,7 +121,7 @@ def compare(dataset, nb_runs):
     print(tabulate(solution, headers=["Method", "Accuracy on Train", "Accuracy on Test", "Time"], tablefmt="github"))
 
     # LibSVM
-    scores, times = [], []
+    tr_scores, ts_scores, times = [], [], []
     for i_run in range(nb_runs):
         print(f"Scikit-Learn : run {i_run + 1}/5")
         t_fit, score = run_sklearn(Xtr, Ytr, Xts, Yts, values[dataset][1])
@@ -134,7 +134,7 @@ def compare(dataset, nb_runs):
     print(tabulate(solution, headers=["Method", "Accuracy on Train", "Accuracy on Test", "Time"], tablefmt="github"))
 
     # Pegasos
-    scores, times = [], []
+    tr_scores, ts_scores, times = [], [], []
     for i_run in range(nb_runs):
         print(f"Pegasos : run {i_run + 1}/5")
         t_fit, score = run_pegasos(Xtr, Ytr, Xts, Yts, 210000 * 3, values[dataset][1])
@@ -147,7 +147,7 @@ def compare(dataset, nb_runs):
     print(tabulate(solution, headers=["Method", "Accuracy on Train", "Accuracy on Test", "Time"], tablefmt="github"))
     
     # ThunderSVM
-    scores, times = [], []
+    tr_scores, ts_scores, times = [], [], []
     for i_run in range(nb_runs):
         print(f"ThunderSVM : run {i_run + 1}/5")
         t_fit, score = run_thundersvm(Xtr, Ytr, Xts, Yts, values[dataset][1])
@@ -160,7 +160,7 @@ def compare(dataset, nb_runs):
     print(tabulate(solution, headers=["Method", "Accuracy on Train", "Accuracy on Test", "Time"], tablefmt="github"))
     """
     # LiquidSVM
-    scores, times = [], []
+    tr_scores, ts_scores, times = [], [], []
     for i_run in range(nb_runs):
         print(f"LiquidSVM : run {i_run + 1}/5")
         t_fit, score = run_liquidsvm(Xtr, Ytr, Xts, Yts, values[dataset][1])
