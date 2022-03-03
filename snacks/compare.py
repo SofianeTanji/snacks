@@ -120,7 +120,7 @@ def compare(dataset, nb_runs):
         ["ThunderSVM - on full", None, None, None],
         ["LibSVM - on subset", None, None, None],
     ]
-    oXtr, oXts, oYtr, oYts = utils.dataloader(dataset, 0.8)
+    oX, oY, oXtr, oXts, oYtr, oYts = utils.dataloader(dataset, 0.8)
     Xtr, Ytr, Xts, Yts = utils.kernel_embedding(
         oXtr, oYtr, oXts, oYts, values[dataset][2], gamma=values[dataset][0]
     )
