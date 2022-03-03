@@ -46,6 +46,19 @@ def run_sklearn(Xtr, Ytr, Xts, Yts, gamma, lambda_reg):
     t_fit, tr_score, ts_score = te - ts, 1 - tr_score, 1 - ts_score
     return t_fit, tr_score, ts_score
 
+def run_libsvm(Xtr, Ytr, Xts, Yts, lambda_reg):
+    print("SKLearn's performance : ")
+    C = 1 / (2 * Xtr.shape[0] * lambda_reg)
+    model = svm.LinearSVC(C = C, loss = "hinge", dual = False)
+    ts = time.perf_counter()
+    model.fit(Xtr, Ytr)
+    te = time.perf_counter()
+    ts_score = model.score(Xts, Yts)
+    print(f"in {(te - ts):.2f}s, C-err is {100 - ts_score * 100:.2f}%")
+    tr_score = model.score(Xtr, Ytr)
+    print(f"also, train error is {100 - tr_score * 100:.2f}%")
+    t_fit, tr_score, ts_score = te - ts, 1 - tr_score, 1 - ts_score
+    return t_fit, tr_score, ts_score
 
 def run_snacks(Xtr, Ytr, Xts, Yts, nb_iterations, lambda_reg, stepsize):
     print("Snacks' performance : ")
@@ -105,7 +118,7 @@ def compare(dataset, nb_runs):
         ["LibSVM - on full", None, None, None],
         ["Pegasos - on subset", None, None, None],
         ["ThunderSVM - on full", None, None, None],
-        ["LiquidSVM - on full", None, None, None],
+        ["LibSVM - on subset", None, None, None],
     ]
     oXtr, oXts, oYtr, oYts = utils.dataloader(dataset, 0.8)
     Xtr, Ytr, Xts, Yts = utils.kernel_embedding(
@@ -224,6 +237,21 @@ def compare(dataset, nb_runs):
             tablefmt="github",
         )
     )
+    
+    # LibSVM 2
+    tr_scores, ts_scores, times = [], [], []
+    for i_run in range(nb_runs):
+        print(f"LibSVM : run {i_run + 1}/{nb_runs}")
+        t_fit, tr_score, ts_score = run_libsvm(Xtr, Ytr, Xts, Yts, values[dataset][1])
+        tr_scores.append(tr_score)
+        ts_scores.append(ts_score)
+        times.append(t_fit)
+    
+    solution[4][1] = f"{np.round(np.mean(np.array(tr_scores)), 4)} ± {np.round(np.std(np.array(tr_scores)), 4)}"
+    solution[4][2] = f"{np.round(np.mean(np.array(ts_scores)), 4)} ± {np.round(np.std(np.array(ts_scores)), 4)}"
+    solution[4][3] = f"{np.round(np.mean(np.array(times)), 4)} ± {np.round(np.std(np.array(times)), 4)}"
+    print(tabulate(solution, headers=["Method", "Accuracy on Train", "Accuracy on Test", "Time"], tablefmt="github"))
+
     """
     # LiquidSVM
     tr_scores, ts_scores, times = [], [], []
