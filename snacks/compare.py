@@ -49,7 +49,7 @@ def run_sklearn(Xtr, Ytr, Xts, Yts, gamma, lambda_reg):
 def run_libsvm(Xtr, Ytr, Xts, Yts, lambda_reg):
     print("SKLearn's performance : ")
     C = 1 / (2 * Xtr.shape[0] * lambda_reg)
-    model = svm.LinearSVC(C = C, loss = "hinge", dual = False)
+    model = svm.LinearSVC(C = C, loss = "hinge")
     ts = time.perf_counter()
     model.fit(Xtr, Ytr)
     te = time.perf_counter()
@@ -73,6 +73,7 @@ def run_snacks(Xtr, Ytr, Xts, Yts, nb_iterations, lambda_reg, stepsize):
     tr_score = model.score(Xtr, Ytr)
     print(f"also, train error is {100 - tr_score * 100:.2f}%")
     t_fit, tr_score, ts_score = te - ts, 1 - tr_score, 1 - ts_score
+    del model
     return t_fit, tr_score, ts_score
 
 
@@ -109,7 +110,7 @@ def run_liquidsvm(Xtr, Ytr, Xts, Yts, lambda_reg):
 def compare(dataset, nb_runs):
     """Compares"""
     values = {
-        "a9a": [1e-3, 1e-6, 1000],
+        "a9a": [1e-1, 1e-5, 1000],
         "SUSY": [1e-1, 5e-8, 2500],
         "HIGGS": [3e-2, 3e-8, 1.2e5],  # à recalibrer
     }
@@ -153,7 +154,7 @@ def compare(dataset, nb_runs):
             tablefmt="github",
         )
     )
-
+    """
     # LibSVM
     tr_scores, ts_scores, times = [], [], []
     for i_run in range(1):
@@ -181,7 +182,7 @@ def compare(dataset, nb_runs):
             tablefmt="github",
         )
     )
-
+    
     # Pegasos
     tr_scores, ts_scores, times = [], [], []
     for i_run in range(nb_runs):
@@ -209,7 +210,7 @@ def compare(dataset, nb_runs):
             tablefmt="github",
         )
     )
-
+    """
     # ThunderSVM
     tr_scores, ts_scores, times = [], [], []
     for i_run in range(nb_runs):
@@ -272,4 +273,4 @@ def compare(dataset, nb_runs):
 if __name__ == "__main__":
     dataset = str(sys.argv[1])
     print(f"Dataset {dataset} chosen")
-    compare(dataset, 10)
+    compare(dataset, 1)
