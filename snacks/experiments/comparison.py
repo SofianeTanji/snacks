@@ -81,7 +81,7 @@ def run_thundersvm(Xtr, Ytr, Xts, Yts, lambda_reg):
 
 def compare(dataset, nb_runs):
     """Compares"""
-    num_centers, gamma, n_iter, eta, D0, K, penalty = BEST_VALUES[dataset]
+    num_centers, gamma, n_iter, eta, D0, K, penalty, num_it_pegasos = BEST_VALUES[dataset]
     
     solution = [
         ["Snacks - on subset", None, None, None],
@@ -157,7 +157,7 @@ def compare(dataset, nb_runs):
     for i_run in range(nb_runs):
         print(f"Pegasos : run {i_run + 1}/{nb_runs}")
         t_fit, tr_score, ts_score = run_pegasos(
-            Xtr, Ytr, Xts, Yts, 425000, penalty
+            Xtr, Ytr, Xts, Yts, num_it_pegasos, penalty
         )
         tr_scores.append(tr_score)
         ts_scores.append(ts_score)
