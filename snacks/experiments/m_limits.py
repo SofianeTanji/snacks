@@ -41,3 +41,8 @@ def run(dataset):
     t_fit, tr_score, ts_score = run_snacks(Xtr, Ytr, Xts, Yts, n_iter, eta, D0, K, penalty)
     print(f"Training took {t_fit:.1f} seconds")
     print(f"Training error is {tr_score:.2f} and Test error is {ts_score:.2f}")
+
+if __name__ == "__main__":
+    dataset = str(sys.argv[1])
+    n_runs = int(sys.argv[2])
+    run(dataset)
