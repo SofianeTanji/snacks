@@ -12,7 +12,7 @@ sys.path.append("../")
 sys.path.append("../../")
 
 ## All methods
-# from thundersvm import SVC
+from thundersvm import SVC
 from pegasos import PegasosSVMClassifier
 from sklearn import svm
 from svm import Snacks
@@ -66,7 +66,7 @@ def run_snacks(Xtr, Ytr, Xts, Yts, nb_iterations, eta, D0, K, penalty):
     del model
     return t_fit, tr_score, ts_score
 
-"""
+
 def run_thundersvm(Xtr, Ytr, Xts, Yts, lambda_reg):
     C = 1 / (2 * Xtr.shape[0] * lambda_reg)
     tsvm = SVC(gamma=1e-1, C=C)
@@ -77,7 +77,7 @@ def run_thundersvm(Xtr, Ytr, Xts, Yts, lambda_reg):
     tr_score = tsvm.score(Xtr, Ytr)
     t_fit, tr_score, ts_score = te - ts, 1 - tr_score, 1 - ts_score
     return t_fit, tr_score, ts_score
-"""
+
 
 def compare(dataset, nb_runs):
     """Compares"""
@@ -179,7 +179,7 @@ def compare(dataset, nb_runs):
             tablefmt="github",
         )
     )
-    """
+    
     # ThunderSVM
     tr_scores, ts_scores, times = [], [], []
     for i_run in range(nb_runs):
@@ -191,13 +191,13 @@ def compare(dataset, nb_runs):
         ts_scores.append(ts_score)
         times.append(t_fit)
 
-    solution[3][
+    solution[2][
         1
     ] = f"{np.round(np.mean(np.array(tr_scores)), 4)} ± {np.round(np.std(np.array(tr_scores)), 4)}"
-    solution[3][
+    solution[2][
         2
     ] = f"{np.round(np.mean(np.array(ts_scores)), 4)} ± {np.round(np.std(np.array(ts_scores)), 4)}"
-    solution[3][
+    solution[2][
         3
     ] = f"{np.round(np.mean(np.array(times)), 4)} ± {np.round(np.std(np.array(times)), 4)}"
     print(
@@ -207,7 +207,7 @@ def compare(dataset, nb_runs):
             tablefmt="github",
         )
     )
-    """
+
     # LibSVM 2
     tr_scores, ts_scores, times = [], [], []
     for i_run in range(nb_runs):
@@ -221,7 +221,7 @@ def compare(dataset, nb_runs):
     solution[3][2] = f"{np.round(np.mean(np.array(ts_scores)), 4)} ± {np.round(np.std(np.array(ts_scores)), 4)}"
     solution[3][3] = f"{np.round(np.mean(np.array(times)), 4)} ± {np.round(np.std(np.array(times)), 4)}"
     print(tabulate(solution, headers=["Method", "Accuracy on Train", "Accuracy on Test", "Time"], tablefmt="github"))
-
+    
 
 if __name__ == "__main__":
     dataset = str(sys.argv[1])
