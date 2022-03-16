@@ -62,7 +62,7 @@ def project(center, radius, weights):
     return weights
 
 
-def dataloader(datafile, train_size):
+def dataloader(datafile, train_size = 0.8):
     # datafile = "../datasets/" + datafile + ".bz2"
     # data = load_svmfile(datafile, dtype="f")
     X, y = fetch_libsvm(datafile)
