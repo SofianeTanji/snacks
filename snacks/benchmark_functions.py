@@ -49,7 +49,7 @@ def cerr_vs_m(
         Xtr, Ytr, Xts, Yts = utils.kernel_embedding(
             oXtr, oYtr, oXts, oYts, m, gamma=gamma
         )
-        empty = odel = Snacks(nb_iterations=3, lambda_reg=lambda_reg, stepsize=stepsize)
+        empty = Snacks(nb_iterations=3, lambda_reg=lambda_reg, stepsize=stepsize)
         empty.fit(Xtr, Ytr)
         scores = []
         for n in range(nb_runs):

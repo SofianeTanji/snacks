@@ -3,11 +3,11 @@
 
 import random
 
-import sys
 import numpy as np
 
 from sklearn.model_selection import train_test_split
-from svmloader import load_svmfile
+from sklearn.preprocessing import normalize
+from libsvmdata import fetch_libsvm
 from sklearn.metrics.pairwise import pairwise_kernels
 from scipy.linalg import sqrtm, inv
 import numba
@@ -20,6 +20,12 @@ def objective_func(X, Y, pen, w):
     reg = pen * np.dot(w, w)
     return np.mean(objres) + reg
 
+@numba.njit(fastmath=True)
+def l1_func(X, Y, pen, w):
+    pred = w @ X
+    objres = np.maximum(0, 1 - pred * Y)
+    reg = pen * np.linalg.norm(w, ord = 1)
+    return np.mean(objres) + reg
 
 @numba.njit(fastmath=True)
 def objective_grad(X, Y, gamma, w):
@@ -28,6 +34,18 @@ def objective_grad(X, Y, gamma, w):
     x, y = X[:, data_idx], Y[data_idx]
     pred = np.dot(w, x)
     subg = gamma * w
+    if y * pred < 1:
+        subg -= y * x
+    return subg
+
+@numba.njit(fastmath=True)
+def l1_grad(X, Y, _, w):
+    _, n = X.shape
+    data_idx = random.randint(0, n - 1)
+    x, y = X[:, data_idx], Y[data_idx]
+    pred = np.dot(w, x)
+    subg = np.sign(w)
+    subg[subg == 0] = 1
     if y * pred < 1:
         subg -= y * x
     return subg
@@ -45,19 +63,21 @@ def project(center, radius, weights):
 
 
 def dataloader(datafile, train_size):
-    datafile = "../datasets/" + datafile
-    data = load_svmfile(datafile)
-    X, y = data[0], data[1]
-    X, y = X.toarray(), y
+    # datafile = "../datasets/" + datafile + ".bz2"
+    # data = load_svmfile(datafile, dtype="f")
+    X, y = fetch_libsvm(datafile)
+    # X, y = X.toarray(), y
     Xtr, Xts, Ytr, Yts = train_test_split(X, y, train_size=train_size)
     return X, y, Xtr, Xts, Ytr, Yts
-
 
 def kernel_embedding(Xtr, Ytr, Xts, Yts, num_centers, **kernel_params):
     """Documentation"""
 
-    Ytr[Ytr == 0] = -1
-    Yts[Yts == 0] = -1
+    normalize(Xtr, axis=1, norm='l2')
+    normalize(Xts, axis=1, norm='l2')
+
+    Ytr[Ytr != 1] = -1
+    Yts[Yts != 1] = -1
 
     centers_idx = np.random.choice(Xtr.shape[0], size=num_centers, replace=False)
     centers = Xtr[centers_idx].astype("float32")

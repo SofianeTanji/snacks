@@ -1,55 +1,57 @@
 # Author : Sofiane Tanji
 # License : GNU GPL V3
 import numpy as np
-from sklearn.base import BaseEstimator
 from optimizer import Optimizer
 
 
 class Snacks:
     """Documentation"""
 
-    def __init__(self, nb_iterations, lambda_reg, stepsize, verbose=False):
+    def __init__(self, n_iter, stepsize, D, K, lambda_reg, verbose=False):
         self.verbose = verbose
-        self.nb_iterations = nb_iterations
+        self.n_iter = n_iter
         self.lambda_reg = lambda_reg
         self.stepsize = stepsize
+        self.D = D
+        self.K = K
         self.objs = None
-        super().__init__()
+        self.weights = None
 
-    def fit(self, Xtr, Ytr):
+    def fit(self, X, Y):
         self.weights, self.objs = Optimizer(
-            nb_iterations=self.nb_iterations,
+            n_iter=self.n_iter,
+            K = self.K,
+            D0 = self.D,
             lambda_reg=self.lambda_reg,
             eta0=self.stepsize,
             verbose=self.verbose,
-        ).run(Xtr.T, Ytr.T)
+        ).run(X.T, Y.T)
+        self.classes_, Y = np.unique(Y, return_inverse=True)
         return self
 
-    def decision_function(self, Xts):
-        return np.dot(self.weights, Xts.T)
+    def decision_function(self, X):
+        return np.dot(self.weights, X.T)
 
-    def predict(self, Xts):
-        d = self.decision_function(Xts)
+    def predict(self, X):
+        d = self.decision_function(X)
         d[d > 0] = 1
         d[d <= 0] = -1
         return d.astype(np.int32)
 
-    def score(self, Xts, Yts):
-        Ypred = self.predict(Xts)
-        score = (Ypred == Yts).sum() / len(Yts)
+    def score(self, X, Y):
+        Ypred = self.predict(X)
+        score = (Ypred == Y).sum() / len(Y)
         return score
-
-
-class MyEstimator(BaseEstimator):
-    def __init__(self, subestimator):
-        self.subestimator = subestimator
-
-    def fit(self, Xtr, Ytr):
-        self.subestimator.fit(Xtr, Ytr)
+    
+    def get_params(self, deep = True):
+        return {
+            "n_iter": self.n_iter,
+            "lambda_reg": self.lambda_reg,
+            "stepsize": self.stepsize,
+            "D": self.D,
+            "K": self.K
+        }
+    def set_params(self, **parameters):
+        for parameter, value in parameters.items():
+            setattr(self, parameter, value)
         return self
-
-    def predict(self, Xts):
-        return self.subestimator.predict(Xts)
-
-    def score(self, Xts, Yts):
-        return 100 - 100 * self.subestimator.score(Xts, Yts)

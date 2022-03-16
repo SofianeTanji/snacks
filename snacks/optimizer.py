@@ -1,14 +1,12 @@
 # Author : Sofiane Tanji
 # License : GNU GPL V3
 
-from profilehooks import profile
 import numpy as np
 import utils
 from numba import njit
 
-
 @njit(fastmath=True)
-def _run(X, Y, D0, eta0, lambda_reg, K, nb_iterations, verbose):
+def _run(X, Y, D0, eta0, lambda_reg, K, n_iter, verbose):
     weights = np.zeros((X.shape[0],), dtype=X.dtype)
     eps = utils.objective_func(X, Y, lambda_reg, weights)
     objs = []
@@ -18,15 +16,15 @@ def _run(X, Y, D0, eta0, lambda_reg, K, nb_iterations, verbose):
     for k in range(K):
         center = np.copy(weights)
         avgw = np.zeros_like(weights)
-        for _ in range(nb_iterations):
+        for _ in range(n_iter):
             grad = utils.objective_grad(X, Y, lambda_reg, weights)
             weights -= eta * grad
             weights = utils.project(center, D, weights)
-            avgw += weights / nb_iterations
-            if verbose and _ % 50 == 0:
+            avgw += weights / n_iter
+            if verbose and _ % 500 == 0:
                 objs.append(
                     (
-                        nb_iterations * k + _,
+                        n_iter * k + _,
                         utils.objective_func(X, Y, lambda_reg, weights),
                     )
                 )
@@ -43,9 +41,9 @@ class Optimizer:
     """
 
     def __init__(
-        self, nb_iterations=30000, K=3, D0=15, eta0=1.0, lambda_reg=1e-5, verbose=False
+        self, n_iter=30000, K=3, D0=15, eta0=1.0, lambda_reg=1e-5, verbose=False
     ):
-        self.nb_iterations = nb_iterations
+        self.n_iter = n_iter
         self.K = K
         self.D0 = D0
         self.eta0 = eta0
@@ -60,7 +58,8 @@ class Optimizer:
             self.eta0,
             self.lambda_reg,
             self.K,
-            self.nb_iterations,
+            self.n_iter,
             self.verbose,
         )
+
         return weights, objs
