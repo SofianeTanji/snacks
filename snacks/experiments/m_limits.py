@@ -34,7 +34,7 @@ def run(dataset):
     n_samples = N_SAMPLES[dataset]
 
     necessary_ram = n_samples * num_centers * 4 * 1.2
-    print(available_ram)
+    
     if available_ram < necessary_ram:
         raise ValueError("Not enough RAM")
 
