@@ -72,16 +72,16 @@ def dataloader(datafile, train_size = 0.8):
 
 def kernel_embedding(Xtr, Ytr, Xts, Yts, num_centers, **kernel_params):
     """Documentation"""
-
-    normalize(Xtr, axis=1, norm='l2')
-    normalize(Xts, axis=1, norm='l2')
-
+    
+    Xtr = normalize(Xtr, axis=1, norm='l2').astype("float32")
+    Xts = normalize(Xts, axis=1, norm='l2').astype("float32")
+    
     Ytr[Ytr != 1] = -1
     Yts[Yts != 1] = -1
 
     centers_idx = np.random.choice(Xtr.shape[0], size=num_centers, replace=False)
     centers = Xtr[centers_idx].astype("float32")
-
+    
     Kmm = pairwise_kernels(centers, centers, metric="rbf", **kernel_params).astype(
         "float32"
     )
