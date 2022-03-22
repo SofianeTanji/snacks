@@ -55,8 +55,8 @@ def run_libsvm(Xtr, Ytr, Xts, Yts, lambda_reg):
     t_fit, tr_score, ts_score = te - ts, 1 - tr_score, 1 - ts_score
     return t_fit, tr_score, ts_score
 
-def run_snacks(Xtr, Ytr, Xts, Yts, nb_iterations, eta, D0, K, penalty):
-    model = Snacks(nb_iterations, eta, D0, K, penalty)
+def run_snacks(Xtr, Ytr, Xts, Yts, penalty):
+    model = Snacks(penalty)
     ts = time.perf_counter()
     model.fit(Xtr, Ytr)
     te = time.perf_counter()
@@ -86,7 +86,7 @@ def compare(dataset, nb_runs):
     solution = [
         ["Snacks - on subset", None, None, None],
         ["Pegasos - on subset", None, None, None],
-        ["ThunderSVM - on full", None, None, None],
+        ["ThunderSVM - on subset", None, None, None],
         ["LibSVM - on subset", None, None, None],
     ]
 
@@ -96,13 +96,13 @@ def compare(dataset, nb_runs):
         oXtr, oYtr, oXts, oYts, num_centers, gamma = gamma
     )
     print(f"Data is now embedded")
-    run_snacks(Xtr, Ytr, Xts, Yts, 1, eta, D0, 1, penalty) # for compilation purposes
+    run_snacks(Xtr, Ytr, Xts, Yts, penalty) # for compilation purposes
 
     # SNACKS
     tr_scores, ts_scores, times = [], [], []
     for i_run in range(nb_runs):
         print(f"Snacks : run {i_run + 1}/{nb_runs}")
-        t_fit, tr_score, ts_score = run_snacks(Xtr, Ytr, Xts, Yts, n_iter, eta, D0, K, penalty)
+        t_fit, tr_score, ts_score = run_snacks(Xtr, Ytr, Xts, Yts, penalty)
         tr_scores.append(tr_score)
         ts_scores.append(ts_score)
         times.append(t_fit)
