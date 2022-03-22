@@ -3,6 +3,8 @@
 
 import random
 
+random.seed(1999)
+
 import numpy as np
 
 from sklearn.model_selection import train_test_split
@@ -10,6 +12,9 @@ from sklearn.preprocessing import normalize
 from libsvmdata import fetch_libsvm
 from sklearn.metrics.pairwise import pairwise_kernels
 from scipy.linalg import sqrtm, inv
+from collections import Counter
+from sklearn.gaussian_process.kernels import PairwiseKernel
+from memory_profiler import profile
 import numba
 
 
@@ -81,6 +86,8 @@ def kernel_embedding(Xtr, Ytr, Xts, Yts, num_centers, **kernel_params):
 
     centers_idx = np.random.choice(Xtr.shape[0], size=num_centers, replace=False)
     centers = Xtr[centers_idx].astype("float32")
+
+    del centers_idx
     
     Kmm = pairwise_kernels(centers, centers, metric="rbf", **kernel_params).astype(
         "float32"

@@ -13,6 +13,7 @@ from svm import Snacks
 # Utils
 from constants import BEST_VALUES, N_SAMPLES
 import utils
+from pympler import tracker
 from psutil import virtual_memory
 import numpy as np
 
@@ -34,7 +35,7 @@ def run(dataset):
     n_samples = N_SAMPLES[dataset]
 
     necessary_ram = n_samples * num_centers * 4 * 1.2
-    
+
     if available_ram < necessary_ram:
         raise ValueError("Not enough RAM")
 
@@ -53,4 +54,7 @@ def run(dataset):
 
 if __name__ == "__main__":
     dataset = str(sys.argv[1])
+
+    tr = tracker.SummaryTracker()
     run(dataset)
+    tr.print_diff()

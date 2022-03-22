@@ -21,7 +21,7 @@ def _run(X, Y, D0, eta0, lambda_reg, K, n_iter, verbose):
             weights -= eta * grad
             weights = utils.project(center, D, weights)
             avgw += weights / n_iter
-            if verbose and _ % 500 == 0:
+            if verbose and _ % 1e4 == 0:
                 objs.append(
                     (
                         n_iter * k + _,
