@@ -92,10 +92,12 @@ def compare(dataset, nb_runs):
 
     _, _, oXtr, oXts, oYtr, oYts = utils.dataloader(dataset, 0.8)
     print(f"Data is being embedded")
+    time_start = time.perf_counter()
     Xtr, Ytr, Xts, Yts = utils.kernel_embedding(
         oXtr, oYtr, oXts, oYts, num_centers, gamma = gamma
     )
-    print(f"Data is now embedded")
+    time_end = time.perf_counter()
+    print(f"Data embedded")
     run_snacks(Xtr, Ytr, Xts, Yts, penalty) # for compilation purposes
 
     # SNACKS
@@ -221,6 +223,8 @@ def compare(dataset, nb_runs):
     solution[3][2] = f"{np.round(np.mean(np.array(ts_scores)), 4)} ± {np.round(np.std(np.array(ts_scores)), 4)}"
     solution[3][3] = f"{np.round(np.mean(np.array(times)), 4)} ± {np.round(np.std(np.array(times)), 4)}"
     print(tabulate(solution, headers=["Method", "Accuracy on Train", "Accuracy on Test", "Time"], tablefmt="github"))
+
+    print(f"Kernel matrix computed in {(time_end - time_start):.3f}")
     
 
 if __name__ == "__main__":
