@@ -115,4 +115,12 @@ def kernel_embedding(Xtr, Ytr, Xts, Yts, num_centers, **kernel_params):
     del Knm
     del Kmm_sqrt_inv
 
+
+    train_mean = np.mean(Xtr_emb)
+    train_std = np.std(Xtr_emb)
+    Xtr_emb -= train_mean
+    Xtr_emb /= train_std
+    Xts_emb -= train_mean
+    Xts_emb /= train_std
+
     return Xtr_emb, Ytr, Xts_emb, Yts
