@@ -119,7 +119,7 @@ def compare(dataset, nb_runs):
     print(
         tabulate(
             solution,
-            headers=["Method", "Accuracy on Train", "Accuracy on Test", "Time"],
+            headers=[f"Method / {dataset}", "Accuracy on Train", "Accuracy on Test", "Time"],
             tablefmt="github",
         )
     )
