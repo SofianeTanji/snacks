@@ -149,7 +149,7 @@ def compare(dataset, nb_runs):
     print(
         tabulate(
             solution,
-            headers=["Method", "Accuracy on Train", "Accuracy on Test", "Time"],
+            headers=[f"Method / {dataset}", "Accuracy on Train", "Accuracy on Test", "Time"],
             tablefmt="github",
         )
     )
@@ -177,7 +177,7 @@ def compare(dataset, nb_runs):
     print(
         tabulate(
             solution,
-            headers=["Method", "Accuracy on Train", "Accuracy on Test", "Time"],
+            headers=[f"Method / {dataset}", "Accuracy on Train", "Accuracy on Test", "Time"],
             tablefmt="github",
         )
     )
@@ -205,7 +205,7 @@ def compare(dataset, nb_runs):
     print(
         tabulate(
             solution,
-            headers=["Method", "Accuracy on Train", "Accuracy on Test", "Time"],
+            headers=[f"Method / {dataset}", "Accuracy on Train", "Accuracy on Test", "Time"],
             tablefmt="github",
         )
     )
@@ -222,7 +222,7 @@ def compare(dataset, nb_runs):
     solution[3][1] = f"{np.round(np.mean(np.array(tr_scores)), 4)} ± {np.round(np.std(np.array(tr_scores)), 4)}"
     solution[3][2] = f"{np.round(np.mean(np.array(ts_scores)), 4)} ± {np.round(np.std(np.array(ts_scores)), 4)}"
     solution[3][3] = f"{np.round(np.mean(np.array(times)), 4)} ± {np.round(np.std(np.array(times)), 4)}"
-    print(tabulate(solution, headers=["Method", "Accuracy on Train", "Accuracy on Test", "Time"], tablefmt="github"))
+    print(tabulate(solution, headers=[f"Method / {dataset}", "Accuracy on Train", "Accuracy on Test", "Time"], tablefmt="github"))
 
     print(f"Kernel matrix computed in {(time_end - time_start):.3f}")
     
