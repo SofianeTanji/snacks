@@ -72,7 +72,6 @@ def dataloader(datafile, train_size = 0.8):
 
 def kernel_embedding(Xtr, Ytr, Xts, Yts, num_centers, **kernel_params):
     """Documentation"""
-    print(f"number of inducing points used {num_centers}")
     Xtr = Xtr.astype("float32")
     Xts = Xts.astype("float32")
 
@@ -116,6 +115,6 @@ def kernel_embedding(Xtr, Ytr, Xts, Yts, num_centers, **kernel_params):
     del Knm
     del Kmm_sqrt_inv
 
-    print(f"Shape of Xtr {Xtr_emb}")
+    print(f"Shape of Xtr {Xtr_emb.shape}")
 
     return Xtr_emb, Ytr, Xts_emb, Yts
