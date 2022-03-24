@@ -86,6 +86,7 @@ def run_thundersvm(Xtr, Ytr, Xts, Yts, lambda_reg):
 def compare(dataset, nb_runs):
     """Compares"""
     num_centers, gamma, n_iter, eta, D0, K, penalty, num_it_pegasos = BEST_VALUES[dataset]
+    print(f"number of inducing points used {num_centers}")
     
     solution = [
         ["Snacks - on subset", None, None, None],
