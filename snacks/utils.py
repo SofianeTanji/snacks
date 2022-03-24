@@ -115,6 +115,4 @@ def kernel_embedding(Xtr, Ytr, Xts, Yts, num_centers, **kernel_params):
     del Knm
     del Kmm_sqrt_inv
 
-    print(f"Shape of Xtr {Xtr_emb.shape}")
-
     return Xtr_emb, Ytr, Xts_emb, Yts

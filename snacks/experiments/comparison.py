@@ -69,10 +69,6 @@ def run_snacks(Xtr, Ytr, Xts, Yts, penalty):
 
 def run_thundersvm(Xtr, Ytr, Xts, Yts, lambda_reg):
     C = 1 / (2 * Xtr.shape[0] * lambda_reg)
-    print(Xtr.shape)
-    print(Xts.shape)
-    print(Ytr.shape)
-    print(Yts.shape)
     tsvm = SVC(kernel = "precomputed", C=C, verbose = True)
     ts = time.time()
     tsvm.fit(Xtr, Ytr)
@@ -192,7 +188,7 @@ def compare(dataset, nb_runs):
     for i_run in range(nb_runs):
         print(f"ThunderSVM : run {i_run + 1}/{nb_runs}")
         t_fit, tr_score, ts_score = run_thundersvm(
-            oXtr, oYtr, oXts, oYts, penalty
+            Xtr, Ytr, Xts, Yts, penalty
         )
         tr_scores.append(tr_score)
         ts_scores.append(ts_score)
