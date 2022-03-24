@@ -10,9 +10,6 @@ from sklearn.preprocessing import normalize
 from libsvmdata import fetch_libsvm
 from sklearn.metrics.pairwise import pairwise_kernels
 from scipy.linalg import sqrtm, inv
-from collections import Counter
-from sklearn.gaussian_process.kernels import PairwiseKernel
-from memory_profiler import profile
 import numba
 
 
@@ -75,9 +72,6 @@ def dataloader(datafile, train_size = 0.8):
 
 def kernel_embedding(Xtr, Ytr, Xts, Yts, num_centers, **kernel_params):
     """Documentation"""
-    
-    Xtr = normalize(Xtr, axis=1, norm='l2').astype("float32")
-    Xts = normalize(Xts, axis=1, norm='l2').astype("float32")
     
     Ytr[Ytr != 1] = -1
     Yts[Yts != 1] = -1
