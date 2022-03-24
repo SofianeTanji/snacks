@@ -72,14 +72,9 @@ def dataloader(datafile, train_size = 0.8):
 
 def kernel_embedding(Xtr, Ytr, Xts, Yts, num_centers, **kernel_params):
     """Documentation"""
-    Xtr = Xtr.astype("float32")
-    Xts = Xts.astype("float32")
-
-    m, s = np.mean(Xtr), np.std(Xtr)
-    Xtr -= m
-    Xtr /= s
-    Xts -= m
-    Xts /= s
+    
+    Xtr = normalize(Xtr, axis=1, norm='l2').astype("float32")
+    Xts = normalize(Xts, axis=1, norm='l2').astype("float32") # TODO : check if it's ok to do it
     
     Ytr[Ytr != 1] = -1
     Yts[Yts != 1] = -1
