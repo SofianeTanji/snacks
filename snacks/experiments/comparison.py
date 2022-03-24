@@ -69,7 +69,7 @@ def run_snacks(Xtr, Ytr, Xts, Yts, penalty):
 
 def run_thundersvm(Xtr, Ytr, Xts, Yts, lambda_reg):
     C = 1 / (2 * Xtr.shape[0] * lambda_reg)
-    tsvm = SVC(kernel = "precomputed", C=20)
+    tsvm = SVC(kernel = "precomputed", C=C, verbose = True)
     ts = time.time()
     tsvm.fit(Xtr, Ytr)
     te = time.time()
