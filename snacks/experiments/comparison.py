@@ -55,8 +55,11 @@ def run_libsvm(Xtr, Ytr, Xts, Yts, lambda_reg):
     t_fit, tr_score, ts_score = te - ts, 1 - tr_score, 1 - ts_score
     return t_fit, tr_score, ts_score
 
-def run_snacks(Xtr, Ytr, Xts, Yts, penalty):
-    model = Snacks(penalty)
+def run_snacks(Xtr, Ytr, Xts, Yts, penalty, nit):
+    if nit is not None:
+        model = Snacks(penalty, n_iter = nit)
+    else:
+        model = Snacks(penalty)
     ts = time.perf_counter()
     model.fit(Xtr, Ytr)
     te = time.perf_counter()
@@ -67,10 +70,9 @@ def run_snacks(Xtr, Ytr, Xts, Yts, penalty):
     return t_fit, tr_score, ts_score
 
 
-def run_thundersvm(Xtr, Ytr, Xts, Yts, lambda_reg, g):
+def run_thundersvm(Xtr, Ytr, Xts, Yts, lambda_reg):
     C = 1 / (2 * Xtr.shape[0] * lambda_reg)
-    # tsvm = SVC(kernel = "precomputed", C=C, verbose = True)
-    tsvm = SVC(kernel = "rbf", C = C, gamma = g)
+    tsvm = SVC(kernel = "precomputed", C=C, verbose = True)
     ts = time.time()
     tsvm.fit(Xtr, Ytr)
     te = time.time()
@@ -79,6 +81,22 @@ def run_thundersvm(Xtr, Ytr, Xts, Yts, lambda_reg, g):
     t_fit, tr_score, ts_score = te - ts, 1 - tr_score, 1 - ts_score
     return t_fit, tr_score, ts_score
 
+def table_print(method, solution, tr_scores, ts_scores, times):
+    if method == "Snacks":
+        idx = 0
+    elif method == "Pegasos":
+        idx = 1
+    elif method == "LibSVM":
+        idx = 2
+    elif method == "ThunderSVM":
+        idx = 3
+    else:
+        assert False, "Unknown method"
+    solution[idx][1] = f"{np.round(np.mean(np.array(tr_scores)), 4)} ± {np.round(np.std(np.array(tr_scores)), 4)}"
+    solution[idx][2] = f"{np.round(np.mean(np.array(ts_scores)), 4)} ± {np.round(np.std(np.array(ts_scores)), 4)}"
+    solution[idx][3] = f"{np.round(np.mean(np.array(times)), 4)} ± {np.round(np.std(np.array(times)), 4)}"
+    print(tabulate(solution, headers=[f"Method / {dataset}", "Accuracy on Train", "Accuracy on Test", "Time"], tablefmt="github"))
+    return solution
 
 def compare(dataset, nb_runs, flag_tsvm):
     """Compares"""
@@ -88,75 +106,34 @@ def compare(dataset, nb_runs, flag_tsvm):
     solution = [
         ["Snacks - on subset", None, None, None],
         ["Pegasos - on subset", None, None, None],
-        ["ThunderSVM - on subset", None, None, None],
         ["LibSVM - on subset", None, None, None],
+        ["ThunderSVM - on subset", None, None, None],
     ]
 
-    oX, oY, oXtr, oXts, oYtr, oYts = utils.dataloader(dataset, 0.8)
+    oX, oY = utils.dataloader(dataset)
     print(f"Data is being embedded")
     time_start = time.perf_counter()
-    Xtr, Ytr, Xts, Yts = utils.kernel_embedding(
-        oXtr, oYtr, oXts, oYts, num_centers, gamma = gamma
-    )
+    Xtr, Ytr, Xts, Yts = utils.kernel_embedding(oX, oY, num_centers, 0.8, "rbf", gamma = gamma)
     time_end = time.perf_counter()
-    tXtr, tXts, tYtr, tYts = utils.subsampling(oX, oY, num_centers)
     print(f"Data embedded in {(time_end - time_start):.3f}s")
-    run_snacks(Xtr, Ytr, Xts, Yts, penalty) # for compilation purposes
+    run_snacks(Xtr, Ytr, Xts, Yts, penalty, 1) # for compilation purposes
 
     # SNACKS
     tr_scores, ts_scores, times = [], [], []
     for i_run in range(nb_runs):
         print(f"Snacks : run {i_run + 1}/{nb_runs}")
-        t_fit, tr_score, ts_score = run_snacks(Xtr, Ytr, Xts, Yts, penalty)
+        t_fit, tr_score, ts_score = run_snacks(Xtr, Ytr, Xts, Yts, penalty, None)
         tr_scores.append(tr_score)
         ts_scores.append(ts_score)
         times.append(t_fit)
 
-    solution[0][
-        1
-    ] = f"{np.round(np.mean(np.array(tr_scores)), 4)} ± {np.round(np.std(np.array(tr_scores)), 4)}"
-    solution[0][
-        2
-    ] = f"{np.round(np.mean(np.array(ts_scores)), 4)} ± {np.round(np.std(np.array(ts_scores)), 4)}"
-    solution[0][
-        3
-    ] = f"{np.round(np.mean(np.array(times)), 4)} ± {np.round(np.std(np.array(times)), 4)}"
-    print(
-        tabulate(
-            solution,
-            headers=[f"Method / {dataset}", "Accuracy on Train", "Accuracy on Test", "Time"],
-            tablefmt="github",
-        )
-    )
-    """
-    # LibSVM
-    tr_scores, ts_scores, times = [], [], []
-    for i_run in range(1):
-        print(f"Scikit-Learn : run {i_run + 1}/{nb_runs}")
-        t_fit, tr_score, ts_score = run_sklearn(
-            oXtr, oYtr, oXts, oYts, gamma, penalty
-        )
-        tr_scores.append(tr_score)
-        ts_scores.append(ts_score)
-        times.append(t_fit)
+    solution = table_print("Snacks", solution, tr_scores, ts_scores, times)
+    print(f"Data is being embedded")
+    time_start = time.perf_counter()
+    Xtr, Ytr, Xts, Yts = utils.kernel_embedding(oX, oY, num_centers, 0.8, "rbf", gamma = gamma)
+    time_end = time.perf_counter()
+    print(f"Data embedded in {(time_end - time_start):.3f}s")
 
-    solution[1][
-        1
-    ] = f"{np.round(np.mean(np.array(tr_scores)), 4)} ± {np.round(np.std(np.array(tr_scores)), 4)}"
-    solution[1][
-        2
-    ] = f"{np.round(np.mean(np.array(ts_scores)), 4)} ± {np.round(np.std(np.array(ts_scores)), 4)}"
-    solution[1][
-        3
-    ] = f"{np.round(np.mean(np.array(times)), 4)} ± {np.round(np.std(np.array(times)), 4)}"
-    print(
-        tabulate(
-            solution,
-            headers=[f"Method / {dataset}", "Accuracy on Train", "Accuracy on Test", "Time"],
-            tablefmt="github",
-        )
-    )
-    """
     # Pegasos
     tr_scores, ts_scores, times = [], [], []
     for i_run in range(nb_runs):
@@ -168,53 +145,12 @@ def compare(dataset, nb_runs, flag_tsvm):
         ts_scores.append(ts_score)
         times.append(t_fit)
 
-    solution[1][
-        1
-    ] = f"{np.round(np.mean(np.array(tr_scores)), 4)} ± {np.round(np.std(np.array(tr_scores)), 4)}"
-    solution[1][
-        2
-    ] = f"{np.round(np.mean(np.array(ts_scores)), 4)} ± {np.round(np.std(np.array(ts_scores)), 4)}"
-    solution[1][
-        3
-    ] = f"{np.round(np.mean(np.array(times)), 4)} ± {np.round(np.std(np.array(times)), 4)}"
-    print(
-        tabulate(
-            solution,
-            headers=[f"Method / {dataset}", "Accuracy on Train", "Accuracy on Test", "Time"],
-            tablefmt="github",
-        )
-    )
-    
-    # ThunderSVM
-    tr_scores, ts_scores, times = [], [], []
-    if flag_tsvm:
-
-        for i_run in range(nb_runs):
-            print(f"ThunderSVM : run {i_run + 1}/{nb_runs}")
-            t_fit, tr_score, ts_score = run_thundersvm(
-            tXtr, tYtr, tXts, tYts, penalty, gamma
-        )
-            tr_scores.append(tr_score)
-            ts_scores.append(ts_score)
-            times.append(t_fit)
-
-        solution[2][
-        1
-    ] = f"{np.round(np.mean(np.array(tr_scores)), 4)} ± {np.round(np.std(np.array(tr_scores)), 4)}"
-        solution[2][
-        2
-    ] = f"{np.round(np.mean(np.array(ts_scores)), 4)} ± {np.round(np.std(np.array(ts_scores)), 4)}"
-        solution[2][
-        3
-    ] = f"{np.round(np.mean(np.array(times)), 4)} ± {np.round(np.std(np.array(times)), 4)}"
-        print(
-        tabulate(
-            solution,
-            headers=[f"Method / {dataset}", "Accuracy on Train", "Accuracy on Test", "Time"],
-            tablefmt="github",
-        )
-    )
-
+    solution = table_print("Pegasos", solution, tr_scores, ts_scores, times)
+    print(f"Data is being embedded")
+    time_start = time.perf_counter()
+    Xtr, Ytr, Xts, Yts = utils.kernel_embedding(oX, oY, num_centers, 0.8, "rbf", gamma = gamma)
+    time_end = time.perf_counter()
+    print(f"Data embedded in {(time_end - time_start):.3f}s")
     # LibSVM 2
     tr_scores, ts_scores, times = [], [], []
     for i_run in range(nb_runs):
@@ -224,10 +160,23 @@ def compare(dataset, nb_runs, flag_tsvm):
         ts_scores.append(ts_score)
         times.append(t_fit)
     
-    solution[3][1] = f"{np.round(np.mean(np.array(tr_scores)), 4)} ± {np.round(np.std(np.array(tr_scores)), 4)}"
-    solution[3][2] = f"{np.round(np.mean(np.array(ts_scores)), 4)} ± {np.round(np.std(np.array(ts_scores)), 4)}"
-    solution[3][3] = f"{np.round(np.mean(np.array(times)), 4)} ± {np.round(np.std(np.array(times)), 4)}"
-    print(tabulate(solution, headers=[f"Method / {dataset}", "Accuracy on Train", "Accuracy on Test", "Time"], tablefmt="github"))
+    solution = table_print("LibSVM", solution, tr_scores, ts_scores, times)
+    print(f"Data is being embedded")
+    time_start = time.perf_counter()
+    Xtr, Ytr, Xts, Yts = utils.kernel_embedding(oX, oY, num_centers, 0.8, "rbf", gamma = gamma)
+    time_end = time.perf_counter()
+    print(f"Data embedded in {(time_end - time_start):.3f}s")
+    # ThunderSVM
+    tr_scores, ts_scores, times = [], [], []
+    for i_run in range(nb_runs):
+        print(f"ThunderSVM : run {i_run + 1}/{nb_runs}")
+        t_fit, tr_score, ts_score = run_thundersvm(Xtr, Ytr, Xts, Yts, penalty)
+        tr_scores.append(tr_score)
+        ts_scores.append(ts_score)
+        times.append(t_fit)
+
+    solution = table_print("ThunderSVM", solution, tr_scores, ts_scores, times)
+
 
     print(f"Kernel matrix computed in {(time_end - time_start):.3f}")
     

@@ -62,37 +62,20 @@ def project(center, radius, weights):
     return weights
 
 
-def dataloader(datafile, train_size = 0.8):
+def dataloader(datafile):
     # datafile = "../datasets/" + datafile + ".bz2"
     # data = load_svmfile(datafile, dtype="f")
     X, y = fetch_libsvm(datafile)
     # X, y = X.toarray(), y
-    Xtr, Xts, Ytr, Yts = train_test_split(X, y, train_size=train_size)
-    return X, y, Xtr, Xts, Ytr, Yts
+    return X, y
 
-def subsampling(X, Y, num_centers, train_size = 0.8):
+def kernel_embedding(X, Y, num_centers, train_size, kernel_type, **kernel_params):
     """Documentation"""
-    X = normalize(X, axis=1, norm='l2').astype("float32")
-    
-    Y[Y != 1] = -1
-    Y[Y != 1] = -1
 
-    centers_idx = np.random.choice(X.shape[0], size=num_centers, replace=False)
-    centers_X = X[centers_idx].astype("float32")
-    centers_Y = Y[centers_idx].astype("float32")
+    Xtr, Xts, Ytr, Yts = train_test_split(X, Y, train_size = train_size)
 
-    del centers_idx
-
-    Xtr, Xts, Ytr, Yts = train_test_split(centers_X, centers_Y, train_size = train_size)
-
-    return Xtr, Xts, Ytr, Yts
-
-def kernel_embedding(Xtr, Ytr, Xts, Yts, num_centers, **kernel_params):
-    """Documentation"""
-    
     Xtr = normalize(Xtr, axis=1, norm='l2').astype("float32")
-    Xts = normalize(Xts, axis=1, norm='l2').astype("float32") # TODO : check if it's ok to do it
-    
+    Xts = normalize(Xts, axis=1, norm='l2').astype("float32")
     Ytr[Ytr != 1] = -1
     Yts[Yts != 1] = -1
 
@@ -101,17 +84,9 @@ def kernel_embedding(Xtr, Ytr, Xts, Yts, num_centers, **kernel_params):
 
     del centers_idx
     
-    Kmm = pairwise_kernels(centers, centers, metric="rbf", **kernel_params).astype(
+    Kmm = pairwise_kernels(centers, centers, metric=kernel_type, **kernel_params).astype(
         "float32"
     )
-
-    """
-    print(f"Condition number of Kmm : {np.linalg.cond(Kmm)}")
-    M = Kmm + 1e-4 * centers.shape[0] * np.eye(Kmm.shape[0], dtype=Kmm.dtype)
-    print(f"Condition number of Kmm + heja : {np.linalg.cond(M)}")
-
-    print(f"Condition number of sqrt Kmm + heja : {np.linalg.cond(np.real(sqrtm(M)))}")
-    """
 
     Kmm_sqrt_inv = inv(
         np.real(
@@ -121,7 +96,7 @@ def kernel_embedding(Xtr, Ytr, Xts, Yts, num_centers, **kernel_params):
 
     del Kmm
 
-    Knm = pairwise_kernels(Xtr, centers, metric="rbf", **kernel_params).astype(
+    Knm = pairwise_kernels(Xtr, centers, metric=kernel_type, **kernel_params).astype(
         "float32"
     )
 
@@ -129,7 +104,7 @@ def kernel_embedding(Xtr, Ytr, Xts, Yts, num_centers, **kernel_params):
 
     del Knm
 
-    Knm = pairwise_kernels(Xts, centers, metric="rbf", **kernel_params)
+    Knm = pairwise_kernels(Xts, centers, metric=kernel_type, **kernel_params)
 
     Xts_emb = Knm @ Kmm_sqrt_inv
 

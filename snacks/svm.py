@@ -7,7 +7,7 @@ from optimizer import Optimizer
 class Snacks:
     """Documentation"""
 
-    def __init__(self, lambda_reg, stepsize = 10, n_iter = 85000, D = 1100, K = 5, verbose=False):
+    def __init__(self, lambda_reg, stepsize = 10, n_iter = 200000, D = 1100, K = 5, verbose=False):
         self.verbose = verbose
         self.n_iter = n_iter
         self.lambda_reg = lambda_reg
