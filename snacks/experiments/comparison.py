@@ -46,7 +46,7 @@ def run_sklearn(Xtr, Ytr, Xts, Yts, gamma, lambda_reg):
 
 def run_libsvm(Xtr, Ytr, Xts, Yts, lambda_reg):
     C = 1 / (2 * Xtr.shape[0] * lambda_reg)
-    model = svm.LinearSVC(C = C, loss = "hinge")
+    model = svm.LinearSVC(C = C, loss = "hinge", max_iter = 25000)
     ts = time.perf_counter()
     model.fit(Xtr, Ytr)
     te = time.perf_counter()
@@ -67,9 +67,10 @@ def run_snacks(Xtr, Ytr, Xts, Yts, penalty):
     return t_fit, tr_score, ts_score
 
 
-def run_thundersvm(Xtr, Ytr, Xts, Yts, lambda_reg):
+def run_thundersvm(Xtr, Ytr, Xts, Yts, lambda_reg, g):
     C = 1 / (2 * Xtr.shape[0] * lambda_reg)
-    tsvm = SVC(kernel = "linear", C=C, verbose = True)
+    # tsvm = SVC(kernel = "precomputed", C=C, verbose = True)
+    tsvm = SVC(kernel = "rbf", C = C, gamma = g)
     ts = time.time()
     tsvm.fit(Xtr, Ytr)
     te = time.time()
@@ -79,9 +80,9 @@ def run_thundersvm(Xtr, Ytr, Xts, Yts, lambda_reg):
     return t_fit, tr_score, ts_score
 
 
-def compare(dataset, nb_runs):
+def compare(dataset, nb_runs, flag_tsvm):
     """Compares"""
-    num_centers, gamma, n_iter, eta, D0, K, penalty, num_it_pegasos = BEST_VALUES[dataset]
+    num_centers, gamma, penalty, num_it_pegasos = BEST_VALUES[dataset]
     print(f"number of inducing points used {num_centers}")
     
     solution = [
@@ -91,14 +92,15 @@ def compare(dataset, nb_runs):
         ["LibSVM - on subset", None, None, None],
     ]
 
-    _, _, oXtr, oXts, oYtr, oYts = utils.dataloader(dataset, 0.8)
+    oX, oY, oXtr, oXts, oYtr, oYts = utils.dataloader(dataset, 0.8)
     print(f"Data is being embedded")
     time_start = time.perf_counter()
     Xtr, Ytr, Xts, Yts = utils.kernel_embedding(
         oXtr, oYtr, oXts, oYts, num_centers, gamma = gamma
     )
     time_end = time.perf_counter()
-    print(f"Data embedded")
+    tXtr, tXts, tYtr, tYts = utils.subsampling(oX, oY, num_centers)
+    print(f"Data embedded in {(time_end - time_start):.3f}s")
     run_snacks(Xtr, Ytr, Xts, Yts, penalty) # for compilation purposes
 
     # SNACKS
@@ -185,25 +187,27 @@ def compare(dataset, nb_runs):
     
     # ThunderSVM
     tr_scores, ts_scores, times = [], [], []
-    for i_run in range(nb_runs):
-        print(f"ThunderSVM : run {i_run + 1}/{nb_runs}")
-        t_fit, tr_score, ts_score = run_thundersvm(
-            Xtr, Ytr, Xts, Yts, penalty
-        )
-        tr_scores.append(tr_score)
-        ts_scores.append(ts_score)
-        times.append(t_fit)
+    if flag_tsvm:
 
-    solution[2][
+        for i_run in range(nb_runs):
+            print(f"ThunderSVM : run {i_run + 1}/{nb_runs}")
+            t_fit, tr_score, ts_score = run_thundersvm(
+            tXtr, tYtr, tXts, tYts, penalty, gamma
+        )
+            tr_scores.append(tr_score)
+            ts_scores.append(ts_score)
+            times.append(t_fit)
+
+        solution[2][
         1
     ] = f"{np.round(np.mean(np.array(tr_scores)), 4)} ± {np.round(np.std(np.array(tr_scores)), 4)}"
-    solution[2][
+        solution[2][
         2
     ] = f"{np.round(np.mean(np.array(ts_scores)), 4)} ± {np.round(np.std(np.array(ts_scores)), 4)}"
-    solution[2][
+        solution[2][
         3
     ] = f"{np.round(np.mean(np.array(times)), 4)} ± {np.round(np.std(np.array(times)), 4)}"
-    print(
+        print(
         tabulate(
             solution,
             headers=[f"Method / {dataset}", "Accuracy on Train", "Accuracy on Test", "Time"],
@@ -231,4 +235,4 @@ def compare(dataset, nb_runs):
 if __name__ == "__main__":
     dataset = str(sys.argv[1])
     n_runs = int(sys.argv[2])
-    compare(dataset, n_runs)
+    compare(dataset, n_runs, True)

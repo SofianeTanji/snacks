@@ -70,6 +70,23 @@ def dataloader(datafile, train_size = 0.8):
     Xtr, Xts, Ytr, Yts = train_test_split(X, y, train_size=train_size)
     return X, y, Xtr, Xts, Ytr, Yts
 
+def subsampling(X, Y, num_centers, train_size = 0.8):
+    """Documentation"""
+    X = normalize(X, axis=1, norm='l2').astype("float32")
+    
+    Y[Y != 1] = -1
+    Y[Y != 1] = -1
+
+    centers_idx = np.random.choice(X.shape[0], size=num_centers, replace=False)
+    centers_X = X[centers_idx].astype("float32")
+    centers_Y = Y[centers_idx].astype("float32")
+
+    del centers_idx
+
+    Xtr, Xts, Ytr, Yts = train_test_split(centers_X, centers_Y, train_size = train_size)
+
+    return Xtr, Xts, Ytr, Yts
+
 def kernel_embedding(Xtr, Ytr, Xts, Yts, num_centers, **kernel_params):
     """Documentation"""
     
@@ -87,9 +104,18 @@ def kernel_embedding(Xtr, Ytr, Xts, Yts, num_centers, **kernel_params):
     Kmm = pairwise_kernels(centers, centers, metric="rbf", **kernel_params).astype(
         "float32"
     )
+
+    """
+    print(f"Condition number of Kmm : {np.linalg.cond(Kmm)}")
+    M = Kmm + 1e-4 * centers.shape[0] * np.eye(Kmm.shape[0], dtype=Kmm.dtype)
+    print(f"Condition number of Kmm + heja : {np.linalg.cond(M)}")
+
+    print(f"Condition number of sqrt Kmm + heja : {np.linalg.cond(np.real(sqrtm(M)))}")
+    """
+
     Kmm_sqrt_inv = inv(
         np.real(
-            sqrtm(Kmm + 1e-6 * centers.shape[0] * np.eye(Kmm.shape[0], dtype=Kmm.dtype))
+            sqrtm(Kmm + 1e-4 * centers.shape[0] * np.eye(Kmm.shape[0], dtype=Kmm.dtype))
         )
     ).astype("float32")
 
