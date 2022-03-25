@@ -101,7 +101,6 @@ def table_print(method, solution, tr_scores, ts_scores, times):
 def compare(dataset, nb_runs, flag_tsvm):
     """Compares"""
     num_centers, gamma, penalty, num_it_pegasos = BEST_VALUES[dataset]
-    print(f"number of inducing points used {num_centers}")
     
     solution = [
         ["Snacks - on subset", None, None, None],
