@@ -72,7 +72,7 @@ def run_snacks(Xtr, Ytr, Xts, Yts, penalty, nit):
 
 def run_thundersvm(Xtr, Ytr, Xts, Yts, lambda_reg):
     C = 1 / (2 * Xtr.shape[0] * lambda_reg)
-    tsvm = SVC(kernel = "precomputed", C=C, verbose = True)
+    tsvm = SVC(kernel = "precomputed", C=C)
     ts = time.time()
     tsvm.fit(Xtr, Ytr)
     te = time.time()
@@ -127,11 +127,6 @@ def compare(dataset, nb_runs, flag_tsvm):
         times.append(t_fit)
 
     solution = table_print("Snacks", solution, tr_scores, ts_scores, times)
-    print(f"Data is being embedded")
-    time_start = time.perf_counter()
-    Xtr, Ytr, Xts, Yts = utils.kernel_embedding(oX, oY, num_centers, 0.8, "rbf", gamma = gamma)
-    time_end = time.perf_counter()
-    print(f"Data embedded in {(time_end - time_start):.3f}s")
 
     # Pegasos
     tr_scores, ts_scores, times = [], [], []
@@ -145,11 +140,7 @@ def compare(dataset, nb_runs, flag_tsvm):
         times.append(t_fit)
 
     solution = table_print("Pegasos", solution, tr_scores, ts_scores, times)
-    print(f"Data is being embedded")
-    time_start = time.perf_counter()
-    Xtr, Ytr, Xts, Yts = utils.kernel_embedding(oX, oY, num_centers, 0.8, "rbf", gamma = gamma)
-    time_end = time.perf_counter()
-    print(f"Data embedded in {(time_end - time_start):.3f}s")
+    
     # LibSVM 2
     tr_scores, ts_scores, times = [], [], []
     for i_run in range(nb_runs):
@@ -160,11 +151,7 @@ def compare(dataset, nb_runs, flag_tsvm):
         times.append(t_fit)
     
     solution = table_print("LibSVM", solution, tr_scores, ts_scores, times)
-    print(f"Data is being embedded")
-    time_start = time.perf_counter()
-    Xtr, Ytr, Xts, Yts = utils.kernel_embedding(oX, oY, num_centers, 0.8, "rbf", gamma = gamma)
-    time_end = time.perf_counter()
-    print(f"Data embedded in {(time_end - time_start):.3f}s")
+    
     # ThunderSVM
     tr_scores, ts_scores, times = [], [], []
     for i_run in range(nb_runs):
@@ -175,7 +162,6 @@ def compare(dataset, nb_runs, flag_tsvm):
         times.append(t_fit)
 
     solution = table_print("ThunderSVM", solution, tr_scores, ts_scores, times)
-
 
     print(f"Kernel matrix computed in {(time_end - time_start):.3f}")
     
