@@ -81,3 +81,8 @@ def run(dset):
         ax.set(xlabel="iterations", ylabel="Accuracy", title=f"Dataset = {dset}")
         fig = ax.get_figure()
         fig.savefig(f"c_err-vs-it-{dset}-{i}.png", bbox_inches="tight")
+
+
+if __name__ == "__main__":
+    dataset = str(sys.argv[1])
+    run(dataset)
