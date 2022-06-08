@@ -39,15 +39,15 @@ def run_thundersvm(gamma, penalty, dataset):
     ts_score = tsvm.score(Xts, Yts)
     tr_score = tsvm.score(Xtr, Ytr)
     t_fit, tr_score, ts_score = time_end - time_start + te - ts, 1 - tr_score, 1 - ts_score
-    print(f"Best score on training set : {tr_score:.3f}")
+    print(f"Best score on training set : {ts_score:.3f}")
     print(f"Best score on test set : {ts_score:.3f}")
     print(f"Total cpu time for training : {(te - ts):.3f} seconds")
     return t_fit, tr_score, ts_score
 
-def run_snacks(gamma, penalty, dataset, tr_threshold, tol):
+def run_snacks(gamma, penalty, dataset, threshold, tol):
     m = 50
     score = 1
-    while score > tol * tr_threshold:
+    while score > tol * threshold:
         oX, oY = utils.dataloader(dataset)
         time_start = time.perf_counter()
         Xtr, Ytr, Xts, Yts = utils.kernel_embedding(oX, oY, m, gamma = gamma)
@@ -61,15 +61,15 @@ def run_snacks(gamma, penalty, dataset, tr_threshold, tol):
         tr_score = model.score(Xtr, Ytr)
         t_fit, tr_score, ts_score = te - ts + time_end - time_start, 1 - tr_score, 1 - ts_score
         del model
-        print(f"Score {tr_score:.3f} reached with m = {m} and needed score is {tr_threshold:.3f}")
+        print(f"Score {ts_score:.3f} reached with m = {m} and needed score is {threshold:.3f}")
         m = int(1.5 * m)
-        score = tr_score
+        score = ts_score
     return t_fit, tr_score, ts_score, m
 
-def run_pegasos(gamma, penalty, dataset, tr_threshold, tol):
+def run_pegasos(gamma, penalty, dataset, threshold, tol):
     m = 50
     score = 1
-    while score > tol * tr_threshold:
+    while score > tol * threshold:
         oX, oY = utils.dataloader(dataset)
         time_start = time.perf_counter()
         Xtr, Ytr, Xts, Yts = utils.kernel_embedding(oX, oY, m, gamma = gamma)
@@ -84,15 +84,15 @@ def run_pegasos(gamma, penalty, dataset, tr_threshold, tol):
         tr_score = model.score(Xtr, Ytr)
         t_fit, tr_score, ts_score = te - ts + time_end - time_start, 1 - tr_score, 1 - ts_score
         del model
-        print(f"Score {tr_score:.3f} reached with m = {m} and needed score is {tr_threshold:.3f}")
+        print(f"Score {ts_score:.3f} reached with m = {m} and needed score is {threshold:.3f}")
         m = int(1.5 * m)
-        score = tr_score
+        score = ts_score
     return t_fit, tr_score, ts_score, m
 
-def run_liblinear(gamma, penalty, dataset, tr_threshold, tol):
+def run_liblinear(gamma, penalty, dataset, threshold, tol):
     m = 50
     score = 1
-    while score > tol * tr_threshold:
+    while score > tol * threshold:
         oX, oY = utils.dataloader(dataset)
         time_start = time.perf_counter()
         Xtr, Ytr, Xts, Yts = utils.kernel_embedding(oX, oY, m, gamma = gamma)
@@ -106,9 +106,9 @@ def run_liblinear(gamma, penalty, dataset, tr_threshold, tol):
         tr_score = model.score(Xtr, Ytr)
         t_fit, tr_score, ts_score = te - ts + time_end - time_start, 1 - tr_score, 1 - ts_score
         del model
-        print(f"Score {tr_score:.3f} reached with m = {m} and needed score is {tr_threshold:.3f}")
+        print(f"Score {ts_score:.3f} reached with m = {m} and needed score is {threshold:.3f}")
         m = int(2 * m)
-        score = tr_score
+        score = ts_score
     return t_fit, tr_score, ts_score, m
 
 def table_print(method, solution, tr_scores, ts_scores, times):
@@ -133,9 +133,9 @@ if __name__ == "__main__":
     _, gamma, penalty, _ = BEST_VALUES[dataset]
     tol = 1.01
     tsvm_fit, tr_threshold, ts_threshold = run_thundersvm(gamma, penalty, dataset)
-    snacks_fit, snackstr, snacksts, snacks_bestm = run_snacks(gamma, penalty, dataset, tr_threshold, tol)
-    peg_fit, pegasosstr, pegasosts, pegasos_bestm = run_pegasos(gamma, penalty, dataset, tr_threshold, tol)
-    lib_fit, libtr, libts, lib_bestm = run_liblinear(gamma, penalty, dataset, tr_threshold, tol)
+    snacks_fit, snackstr, snacksts, snacks_bestm = run_snacks(gamma, penalty, dataset, ts_threshold, tol)
+    peg_fit, pegasosstr, pegasosts, pegasos_bestm = run_pegasos(gamma, penalty, dataset, ts_threshold, tol)
+    lib_fit, libtr, libts, lib_bestm = run_liblinear(gamma, penalty, dataset, ts_threshold, tol)
     solution = [
         ["ThunderSVM", tr_threshold, ts_threshold, None, tsvm_fit],
         ["Pegasos - good m", pegasosstr, pegasosts, pegasos_bestm, peg_fit],
