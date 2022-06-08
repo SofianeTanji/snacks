@@ -45,7 +45,7 @@ def run_thundersvm(gamma, penalty, dataset):
     return t_fit, tr_score, ts_score
 
 def run_snacks(gamma, penalty, dataset, threshold, t_threshold, tol):
-    m = 50
+    m = 100
     score = 1
     my_time = 0
     while score > tol * threshold and t_threshold > my_time:
@@ -63,11 +63,11 @@ def run_snacks(gamma, penalty, dataset, threshold, t_threshold, tol):
         t_fit, tr_score, ts_score = te - ts + time_end - time_start, 1 - tr_score, 1 - ts_score
         del model
         print(f"Score {ts_score:.3f} reached with m = {m} and needed score is {threshold:.3f}")
-        m, score, my_time = int(2 * m), ts_score, te - ts + time_end - time_start
+        m, score, my_time = m + 100, ts_score, te - ts + time_end - time_start
     return t_fit, tr_score, ts_score, m
 
 def run_pegasos(gamma, penalty, dataset, threshold, t_threshold, tol):
-    m = 50
+    m = 100
     score = 1
     my_time = 0
     while score > tol * threshold and t_threshold > my_time:
@@ -86,11 +86,11 @@ def run_pegasos(gamma, penalty, dataset, threshold, t_threshold, tol):
         t_fit, tr_score, ts_score = te - ts + time_end - time_start, 1 - tr_score, 1 - ts_score
         del model
         print(f"Score {ts_score:.3f} reached with m = {m} and needed score is {threshold:.3f}")
-        m, score, my_time = int(2 * m), ts_score, te - ts + time_end - time_start
+        m, score, my_time = m + 100, ts_score, te - ts + time_end - time_start
     return t_fit, tr_score, ts_score, m
 
 def run_liblinear(gamma, penalty, dataset, threshold, t_threshold, tol):
-    m = 50
+    m = 100
     score = 1
     my_time = 0
     while score > tol * threshold and t_threshold > my_time:
@@ -108,7 +108,7 @@ def run_liblinear(gamma, penalty, dataset, threshold, t_threshold, tol):
         t_fit, tr_score, ts_score = te - ts + time_end - time_start, 1 - tr_score, 1 - ts_score
         del model
         print(f"Score {ts_score:.3f} reached with m = {m} and needed score is {threshold:.3f}")
-        m, score, my_time = int(2 * m), ts_score, te - ts + time_end - time_start
+        m, score, my_time = m + 100, ts_score, te - ts + time_end - time_start
     return t_fit, tr_score, ts_score, m
 
 def table_print(method, solution, tr_scores, ts_scores, times):
