@@ -55,6 +55,8 @@ def run_snacks(gamma, penalty, dataset, threshold, t_threshold, tol):
         time_end = time.perf_counter()
         print(f"Data embedded in {(time_end - time_start):.3f}s")
         model = Snacks(penalty)
+        empty = Snacks(penalty, n_iter = 1)
+        empty.fit(Xtr, Ytr)
         ts = time.perf_counter()
         model.fit(Xtr, Ytr)
         te = time.perf_counter()
