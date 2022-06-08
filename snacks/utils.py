@@ -5,9 +5,10 @@ import random
 
 import numpy as np
 
+
+from libsvmdata import fetch_libsvm
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import normalize
-from libsvmdata import fetch_libsvm
 from sklearn.metrics.pairwise import pairwise_kernels
 from scipy.linalg import sqrtm, inv
 import numba
@@ -21,13 +22,6 @@ def objective_func(X, Y, pen, w):
     return np.mean(objres) + reg
 
 @numba.njit(fastmath=True)
-def l1_func(X, Y, pen, w):
-    pred = w @ X
-    objres = np.maximum(0, 1 - pred * Y)
-    reg = pen * np.linalg.norm(w, ord = 1)
-    return np.mean(objres) + reg
-
-@numba.njit(fastmath=True)
 def objective_grad(X, Y, gamma, w):
     _, n = X.shape
     data_idx = random.randint(0, n - 1)
@@ -37,19 +31,6 @@ def objective_grad(X, Y, gamma, w):
     if y * pred < 1:
         subg -= y * x
     return subg
-
-@numba.njit(fastmath=True)
-def l1_grad(X, Y, _, w):
-    _, n = X.shape
-    data_idx = random.randint(0, n - 1)
-    x, y = X[:, data_idx], Y[data_idx]
-    pred = np.dot(w, x)
-    subg = np.sign(w)
-    subg[subg == 0] = 1
-    if y * pred < 1:
-        subg -= y * x
-    return subg
-
 
 @numba.njit(fastmath=True)
 def project(center, radius, weights):
@@ -69,17 +50,19 @@ def dataloader(datafile):
     # X, y = X.toarray(), y
     return X, y
 
-def kernel_embedding(X, Y, num_centers, train_size, kernel_type, **kernel_params):
+def kernel_embedding(X, Y, num_centers, train_size = 0.8, kernel_type = "rbf", tsvm = False, **kernel_params):
     """Documentation"""
 
     Xtr, Xts, Ytr, Yts = train_test_split(X, Y, train_size = train_size)
 
-    Xtr = normalize(Xtr, axis=1, norm='l2').astype("float32")
-    Xts = normalize(Xts, axis=1, norm='l2').astype("float32")
     Ytr[Ytr != 1] = -1
     Yts[Yts != 1] = -1
 
+    if tsvm:
+        return Xtr, Ytr, Xts, Yts
+
     centers_idx = np.random.choice(Xtr.shape[0], size=num_centers, replace=False)
+
     centers = Xtr[centers_idx].astype("float32")
 
     del centers_idx
@@ -110,5 +93,11 @@ def kernel_embedding(X, Y, num_centers, train_size, kernel_type, **kernel_params
 
     del Knm
     del Kmm_sqrt_inv
+    m = np.mean(Xtr_emb)
+    s = np.std(Xtr_emb)
+    Xtr_emb -= m
+    Xtr_emb /= s
+    Xts_emb -= m
+    Xts_emb /= s
 
     return Xtr_emb, Ytr, Xts_emb, Yts

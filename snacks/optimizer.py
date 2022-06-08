@@ -11,7 +11,10 @@ def _run(X, Y, D0, eta0, lambda_reg, K, n_iter, verbose):
     eps = utils.objective_func(X, Y, lambda_reg, weights)
     objs = []
     D = D0 * eps
-    eta = eta0 * eps / 3
+    eta = eta0 / 3
+
+    if verbose:
+        objs.append((0, weights))
 
     for k in range(K):
         center = np.copy(weights)
@@ -21,13 +24,12 @@ def _run(X, Y, D0, eta0, lambda_reg, K, n_iter, verbose):
             weights -= eta * grad
             weights = utils.project(center, D, weights)
             avgw += weights / n_iter
-            if verbose and _ % 1e4 == 0:
-                objs.append(
-                    (
-                        n_iter * k + _,
-                        utils.objective_func(X, Y, lambda_reg, weights),
-                    )
-                )
+        
+            if verbose and _ * k % (n_iter // 10) == 0:
+                objs.append((_ * (k + 1), weights
+                # utils.objective_func(X, Y, lambda_reg, weights),
+                ))
+    
         weights = np.copy(avgw)
         eta, D = eta / 2, D / 2
 
@@ -41,7 +43,7 @@ class Optimizer:
     """
 
     def __init__(
-        self, n_iter=30000, K=3, D0=15, eta0=1.0, lambda_reg=1e-5, verbose=False
+        self, n_iter=85000, K=3, D0=15, eta0=10.0, lambda_reg=1e-5, verbose=False
     ):
         self.n_iter = n_iter
         self.K = K
