@@ -153,7 +153,10 @@ if __name__ == "__main__":
     dataset = str(sys.argv[1])
     _, gamma, penalty, _ = BEST_VALUES[dataset]
     tol = 1.
-    tsvm_fit, tr_threshold, ts_threshold = run_thundersvm(gamma, penalty, dataset)
+    if dataset in ["SUSY", "HIGGS"]:
+        tr_threshold, ts_threshold, tsvm_fit = 0.21, 0.21, 600000
+    else:
+        tsvm_fit, tr_threshold, ts_threshold = run_thundersvm(gamma, penalty, dataset)
     snacks_fit, snackstr, snacksts, snacks_bestm = run_snacks(gamma, penalty, dataset, ts_threshold, 2 * tsvm_fit, tol)
     peg_fit, pegasostr, pegasosts, pegasos_bestm = run_pegasos(gamma, penalty, dataset, ts_threshold, 2 * tsvm_fit, tol)
     lib_fit, libtr, libts, lib_bestm = run_liblinear(gamma, penalty, dataset, ts_threshold, 2 * tsvm_fit, tol)
