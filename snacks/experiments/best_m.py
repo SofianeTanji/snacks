@@ -23,6 +23,7 @@ from constants import BEST_VALUES
 ## Scientific
 import utils
 import numpy as np
+import seaborn as sns
 
 ## Obtain best accuracy
 def run_thundersvm(gamma, penalty, dataset):
@@ -48,6 +49,7 @@ def run_snacks(gamma, penalty, dataset, threshold, t_threshold, tol):
     m = 100
     score = 1
     my_time = 0
+    trmem, tsmem, fitmem = [], [], []
     while score > tol * threshold and t_threshold > my_time:
         oX, oY = utils.dataloader(dataset)
         time_start = time.perf_counter()
@@ -62,16 +64,20 @@ def run_snacks(gamma, penalty, dataset, threshold, t_threshold, tol):
         te = time.perf_counter()
         ts_score = model.score(Xts, Yts)
         tr_score = model.score(Xtr, Ytr)
+        trmem.append(1 - tr_score)
+        tsmem.append(1 - ts_score)
+        fitmem.append(te - ts + time_end - time_start)        
         t_fit, tr_score, ts_score = te - ts + time_end - time_start, 1 - tr_score, 1 - ts_score
         del model
         print(f"Score {ts_score:.3f} reached with m = {m} and needed score is {threshold:.3f}")
-        m, score, my_time = m + 100, ts_score, te - ts + time_end - time_start
-    return t_fit, tr_score, ts_score, m
+        m, score, my_time = m + 100, ts_score, t_fit
+    return fitmem, trmem, tsmem, m
 
 def run_pegasos(gamma, penalty, dataset, threshold, t_threshold, tol):
     m = 100
     score = 1
     my_time = 0
+    trmem, tsmem, fitmem = [], [], []
     while score > tol * threshold and t_threshold > my_time:
         oX, oY = utils.dataloader(dataset)
         time_start = time.perf_counter()
@@ -85,16 +91,20 @@ def run_pegasos(gamma, penalty, dataset, threshold, t_threshold, tol):
         te = time.perf_counter()
         ts_score = model.score(Xts, Yts)
         tr_score = model.score(Xtr, Ytr)
+        trmem.append(1 - tr_score)
+        tsmem.append(1 - ts_score)
+        fitmem.append(te - ts + time_end - time_start)
         t_fit, tr_score, ts_score = te - ts + time_end - time_start, 1 - tr_score, 1 - ts_score
         del model
         print(f"Score {ts_score:.3f} reached with m = {m} and needed score is {threshold:.3f}")
-        m, score, my_time = m + 100, ts_score, te - ts + time_end - time_start
-    return t_fit, tr_score, ts_score, m
+        m, score, my_time = m + 100, ts_score, t_fit
+    return fitmem, trmem, tsmem, m
 
 def run_liblinear(gamma, penalty, dataset, threshold, t_threshold, tol):
     m = 100
     score = 1
     my_time = 0
+    trmem, tsmem, fitmem = [], [], []
     while score > tol * threshold and t_threshold > my_time:
         oX, oY = utils.dataloader(dataset)
         time_start = time.perf_counter()
@@ -107,11 +117,14 @@ def run_liblinear(gamma, penalty, dataset, threshold, t_threshold, tol):
         te = time.perf_counter()
         ts_score = model.score(Xts, Yts)
         tr_score = model.score(Xtr, Ytr)
+        trmem.append(1 - tr_score)
+        tsmem.append(1 - ts_score)
+        fitmem.append(te - ts + time_end - time_start)
         t_fit, tr_score, ts_score = te - ts + time_end - time_start, 1 - tr_score, 1 - ts_score
         del model
         print(f"Score {ts_score:.3f} reached with m = {m} and needed score is {threshold:.3f}")
-        m, score, my_time = m + 100, ts_score, te - ts + time_end - time_start
-    return t_fit, tr_score, ts_score, m
+        m, score, my_time = m + 100, ts_score, t_fit
+    return fitmem, trmem, tsmem, m
 
 def table_print(method, solution, tr_scores, ts_scores, times):
     if method == "Snacks":
@@ -130,19 +143,33 @@ def table_print(method, solution, tr_scores, ts_scores, times):
     print(tabulate(solution, headers=[f"Method / {dataset}", "Accuracy on Train", "Accuracy on Test", "Time"], tablefmt="github"))
     return solution
 
+def lengths(x):
+    if isinstance(x,list):
+        yield len(x)
+        for y in x:
+            yield from lengths(y)
+
 if __name__ == "__main__":
     dataset = str(sys.argv[1])
     _, gamma, penalty, _ = BEST_VALUES[dataset]
-    tol = 1.01
+    tol = 1.
     tsvm_fit, tr_threshold, ts_threshold = run_thundersvm(gamma, penalty, dataset)
     snacks_fit, snackstr, snacksts, snacks_bestm = run_snacks(gamma, penalty, dataset, ts_threshold, 2 * tsvm_fit, tol)
-    peg_fit, pegasosstr, pegasosts, pegasos_bestm = run_pegasos(gamma, penalty, dataset, ts_threshold, 2 * tsvm_fit, tol)
+    peg_fit, pegasostr, pegasosts, pegasos_bestm = run_pegasos(gamma, penalty, dataset, ts_threshold, 2 * tsvm_fit, tol)
     lib_fit, libtr, libts, lib_bestm = run_liblinear(gamma, penalty, dataset, ts_threshold, 2 * tsvm_fit, tol)
+    idx_snacks = snacksts.index(min(snacksts))
+    idx_peg = pegasosts.index(min(pegasosts))
+    idx_lib = libts.index(min(libts))
     solution = [
         ["ThunderSVM", tr_threshold, ts_threshold, None, tsvm_fit],
-        ["Pegasos - good m", pegasosstr, pegasosts, pegasos_bestm, peg_fit],
-        ["Snacks - good m", snackstr, snacksts, snacks_bestm, snacks_fit],
-        ["LibLinear - good m", libtr, libts, lib_bestm, lib_fit],
+        ["Pegasos - good m", pegasostr[idx_peg], pegasosts[idx_peg], 100 * (idx_peg + 1), peg_fit[idx_peg]],
+        ["Snacks - good m", snackstr[idx_snacks], snacksts[idx_snacks], 100 * (idx_snacks + 1), snacks_fit[idx_snacks]],
+        ["LibLinear - good m", libtr[idx_lib], libts[idx_lib], 100 * (idx_lib + 1), lib_fit[idx_lib]]
     ]
     print(tabulate(solution, headers=[f"Method / {dataset}", "Accuracy on Train", "Accuracy on Test", "Best M", "Training time"], tablefmt="github"))
-
+    figure_data = {"m" : [100 * (k + 1) for k in range(lengths([snacksts, pegasosts, libts]))], "Snacks" : snacksts, "Pegasos" : pegasosts, "LibLinear" : libts}
+    ax = sns.lineplot(data = figure_data, legend="auto", markers = True)
+    ax.ticklabel_format(scilimits = [-5,4], axis='x')
+    ax.set(xlabel="m", ylabel="Classification error", title=f"Dataset = {dataset}")
+    fig = ax.get_figure()
+    fig.savefig(f"../../figures/best-m-{dataset}.png", bbox_inches="tight")
