@@ -46,7 +46,7 @@ def run_thundersvm(gamma, penalty, dataset):
     return t_fit, tr_score, ts_score
 
 def run_snacks(gamma, penalty, dataset, threshold, t_threshold, tol):
-    m = 100
+    m = 1000
     score = 1
     my_time = 0
     trmem, tsmem, fitmem = [], [], []
@@ -70,11 +70,11 @@ def run_snacks(gamma, penalty, dataset, threshold, t_threshold, tol):
         t_fit, tr_score, ts_score = te - ts + time_end - time_start, 1 - tr_score, 1 - ts_score
         del model
         print(f"Score {ts_score:.3f} reached with m = {m} and needed score is {threshold:.3f}")
-        m, score, my_time = m + 100, ts_score, t_fit
+        m, score, my_time = m * 2, ts_score, t_fit
     return fitmem, trmem, tsmem, m
 
 def run_pegasos(gamma, penalty, dataset, threshold, t_threshold, tol):
-    m = 100
+    m = 1000
     score = 1
     my_time = 0
     trmem, tsmem, fitmem = [], [], []
@@ -97,11 +97,11 @@ def run_pegasos(gamma, penalty, dataset, threshold, t_threshold, tol):
         t_fit, tr_score, ts_score = te - ts + time_end - time_start, 1 - tr_score, 1 - ts_score
         del model
         print(f"Score {ts_score:.3f} reached with m = {m} and needed score is {threshold:.3f}")
-        m, score, my_time = m + 100, ts_score, t_fit
+        m, score, my_time = m * 2, ts_score, t_fit
     return fitmem, trmem, tsmem, m
 
 def run_liblinear(gamma, penalty, dataset, threshold, t_threshold, tol):
-    m = 100
+    m = 1000
     score = 1
     my_time = 0
     trmem, tsmem, fitmem = [], [], []
@@ -123,7 +123,7 @@ def run_liblinear(gamma, penalty, dataset, threshold, t_threshold, tol):
         t_fit, tr_score, ts_score = te - ts + time_end - time_start, 1 - tr_score, 1 - ts_score
         del model
         print(f"Score {ts_score:.3f} reached with m = {m} and needed score is {threshold:.3f}")
-        m, score, my_time = m + 100, ts_score, t_fit
+        m, score, my_time = m * 2, ts_score, t_fit
     return fitmem, trmem, tsmem, m
 
 def table_print(method, solution, tr_scores, ts_scores, times):
@@ -152,9 +152,11 @@ def lengths(x):
 if __name__ == "__main__":
     dataset = str(sys.argv[1])
     _, gamma, penalty, _ = BEST_VALUES[dataset]
-    tol = 1.
+    tol = 1.2
     if dataset in ["SUSY", "HIGGS"]:
-        tr_threshold, ts_threshold, tsvm_fit = 0.21, 0.21, 600000
+        tr_threshold, ts_threshold, tsvm_fit = 0.21, 0.21, 6000000
+    elif dataset in ["rcv1.binary_test"]:
+        tr_threshold, ts_threshold, tsvm_fit = 0.021, 0.021, 3562
     else:
         tsvm_fit, tr_threshold, ts_threshold = run_thundersvm(gamma, penalty, dataset)
     snacks_fit, snackstr, snacksts, snacks_bestm = run_snacks(gamma, penalty, dataset, ts_threshold, 2 * tsvm_fit, tol)
@@ -165,12 +167,12 @@ if __name__ == "__main__":
     idx_lib = libts.index(min(libts))
     solution = [
         ["ThunderSVM", tr_threshold, ts_threshold, None, tsvm_fit],
-        ["Pegasos - good m", pegasostr[idx_peg], pegasosts[idx_peg], 100 * (idx_peg + 1), peg_fit[idx_peg]],
-        ["Snacks - good m", snackstr[idx_snacks], snacksts[idx_snacks], 100 * (idx_snacks + 1), snacks_fit[idx_snacks]],
-        ["LibLinear - good m", libtr[idx_lib], libts[idx_lib], 100 * (idx_lib + 1), lib_fit[idx_lib]]
+        ["Pegasos - good m", pegasostr[idx_peg], pegasosts[idx_peg], 1000 * (idx_peg + 1), peg_fit[idx_peg]],
+        ["Snacks - good m", snackstr[idx_snacks], snacksts[idx_snacks], 1000 * (idx_snacks + 1), snacks_fit[idx_snacks]],
+        ["LibLinear - good m", libtr[idx_lib], libts[idx_lib], 1000 * (idx_lib + 1), lib_fit[idx_lib]]
     ]
     print(tabulate(solution, headers=[f"Method / {dataset}", "Accuracy on Train", "Accuracy on Test", "Best M", "Training time"], tablefmt="github"))
-    figure_data = {"m" : [100 * (k + 1) for k in range(lengths([snacksts, pegasosts, libts]))], "Snacks" : snacksts, "Pegasos" : pegasosts, "LibLinear" : libts}
+    figure_data = {"m" : [200 * (k + 1) for k in range(lengths([snacksts, pegasosts, libts]))], "Snacks" : snacksts, "Pegasos" : pegasosts, "LibLinear" : libts}
     ax = sns.lineplot(data = figure_data, legend="auto", markers = True)
     ax.ticklabel_format(scilimits = [-5,4], axis='x')
     ax.set(xlabel="m", ylabel="Classification error", title=f"Dataset = {dataset}")

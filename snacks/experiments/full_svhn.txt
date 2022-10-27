@@ -1,0 +1,7 @@
+(73257, 3072)
+Data is being embedded
+Data embedded in 4.727s
+LibSVM : run 1/1
+| Method / SVHN    | Accuracy on Train   | Accuracy on Test   | Time             |
+|------------------|---------------------|--------------------|------------------|
+| LibSVM - on full | 0.0 ± 0.0           | 0.1908 ± 0.0       | 41575.9896 ± 0.0 |

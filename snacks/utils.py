@@ -52,11 +52,17 @@ def dataloader(datafile):
 
 def kernel_embedding(X, Y, num_centers, train_size = 0.8, kernel_type = "rbf", tsvm = False, **kernel_params):
     """Documentation"""
-
+    
     Xtr, Xts, Ytr, Yts = train_test_split(X, Y, train_size = train_size)
 
-    Ytr[Ytr != 1] = -1
-    Yts[Yts != 1] = -1
+    if 8 in Ytr:
+        Ytr[Ytr != 8] = -1
+        Yts[Yts != 8] = -1
+        Ytr[Ytr == 8] = +1
+        Yts[Yts == 8] = +1
+    else:
+        Ytr[Ytr != 1] = -1
+        Yts[Yts != 1] = -1
 
     if tsvm:
         return Xtr, Ytr, Xts, Yts

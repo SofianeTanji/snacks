@@ -25,7 +25,7 @@ def _run(X, Y, D0, eta0, lambda_reg, K, n_iter, verbose):
             weights = utils.project(center, D, weights)
             avgw += weights / n_iter
         
-            if verbose and _ * k % (n_iter // 10) == 0:
+            if verbose and _ * k % (n_iter // 100) == 0:
                 objs.append((_ * (k + 1), weights
                 # utils.objective_func(X, Y, lambda_reg, weights),
                 ))

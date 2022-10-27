@@ -15,6 +15,7 @@ sys.path.append("../../")
 from thundersvm import SVC
 from pegasos import PegasosSVMClassifier
 from sklearn import svm
+from sklearn.model_selection import train_test_split
 from svm import Snacks
 from constants import BEST_VALUES
 from sklearn.metrics import f1_score
@@ -23,28 +24,28 @@ from sklearn.metrics import f1_score
 import utils
 import numpy as np
 
+data = np.load('../../../data/libsvm/binary/ckn_mnist.npz'); y=data['y']; X = data['X']
+
 def run_pegasos(Xtr, Ytr, Xts, Yts, nb_iterations, lambda_reg):
-    return -1, -1, -1
     model = PegasosSVMClassifier(iterations = int(5e6), lambda_reg=lambda_reg)
     ts = time.perf_counter()
     model.fit(Xtr, Ytr)
     te = time.perf_counter()
-    ts_score = model.score(Xts, Yts, "f1")
-    tr_score = model.score(Xtr, Ytr, "f1")
+    ts_score = f1_score(Yts, model.predict(Xts), average = "binary")
+    tr_score = f1_score(Ytr, model.predict(Xtr), average = "binary")
     t_fit, tr_score, ts_score = te - ts, tr_score, ts_score
     del model
     return t_fit, tr_score, ts_score
 
 
 def run_sklearn(Xtr, Ytr, Xts, Yts, gamma, lambda_reg):
-    return -1, -1, -1
     C = 1 / (2 * Xtr.shape[0] * lambda_reg)
     model = svm.SVC(C=C, gamma=gamma)
     ts = time.perf_counter()
     model.fit(Xtr, Ytr)
     te = time.perf_counter()
-    ts_score = model.score(Xts, Yts)
-    tr_score = model.score(Xtr, Ytr)
+    ts_score = f1_score(Yts, model.predict(Xts), average = "binary")
+    tr_score = f1_score(Ytr, model.predict(Xtr), average = "binary")
     t_fit, tr_score, ts_score = te - ts, tr_score, ts_score
     return t_fit, tr_score, ts_score
 
@@ -68,23 +69,21 @@ def run_snacks(Xtr, Ytr, Xts, Yts, penalty, nit):
     ts = time.perf_counter()
     model.fit(Xtr, Ytr)
     te = time.perf_counter()
-    ts_score = model.score(Xts, Yts, "f1")
-    tr_score = model.score(Xtr, Ytr, "f1")
+    ts_score = f1_score(Yts, model.predict(Xts), average = "binary", zero_division = 1)
+    tr_score = f1_score(Ytr, model.predict(Xtr), average = "binary", zero_division = 1)
     t_fit, tr_score, ts_score = te - ts, tr_score, ts_score
     del model
     return t_fit, tr_score, ts_score
 
 
-def run_thundersvm(Xtr, Ytr, Xts, Yts, g, lambda_reg): 
+def run_thundersvm(Xtr, Ytr, Xts, Yts, g, lambda_reg):
     C = 1 / (2 * Xtr.shape[0] * lambda_reg)
     tsvm = SVC(kernel = "rbf", gamma = g, C=C)
     ts = time.time()
     tsvm.fit(Xtr, Ytr)
     te = time.time()
-    ts_pred = tsvm.predict(Xts)
-    tr_pred = tsvm.predict(Xtr)
-    ts_score = f1_score(Yts, ts_pred, average = "binary")
-    tr_score = f1_score(Ytr, tr_pred, average = "binary")
+    ts_score = f1_score(Yts, tsvm.predict(Xts), average = "binary")
+    tr_score = f1_score(Ytr, tsvm.predict(Xtr), average = "binary")
     t_fit, tr_score, ts_score = te - ts, tr_score, ts_score
     return t_fit, tr_score, ts_score
 
@@ -116,15 +115,20 @@ def compare(dataset, nb_runs, flag_tsvm):
         ["Snacks - on subset", None, None, None],
     ]
 
-    oX, oY = utils.dataloader(dataset)
-    oXtr, oYtr, oXts, oYts = utils.kernel_embedding(oX, oY, num_centers, 0.8, 'rbf', tsvm = True)
+    # oX, oY = utils.dataloader(dataset)
+    oX, oY = X, y
+    print(X.shape)
+    oY[oY != 8] = -1
+    oY[oY == 8] = +1
+    oXtr, oXts, oYtr, oYts = train_test_split(oX, oY, train_size = 0.8)
+    # oXtr, oYtr, oXts, oYts = utils.kernel_embedding(oX, oY, num_centers, 0.8, 'rbf', tsvm = True)
     print(f"Data is being embedded")
     time_start = time.perf_counter()
-    Xtr, Ytr, Xts, Yts = utils.kernel_embedding(oX, oY, num_centers, 0.8, "rbf", gamma = gamma)
+    # Xtr, Ytr, Xts, Yts = utils.kernel_embedding(oX, oY, num_centers, 0.8, "rbf", gamma = gamma)
+    Xtr, Ytr, Xts, Yts = oXtr, oYtr, oXts, oYts
     time_end = time.perf_counter()
     print(f"Data embedded in {(time_end - time_start):.3f}s")
     run_snacks(Xtr, Ytr, Xts, Yts, penalty, 1) # for compilation purposes
-    
     # SNACKS
     tr_scores, ts_scores, times = [], [], []
     for i_run in range(nb_runs):
@@ -162,7 +166,6 @@ def compare(dataset, nb_runs, flag_tsvm):
         times.append(t_fit)
     
     solution = table_print("LibSVM", solution, tr_scores, ts_scores, times)
-    
     # ThunderSVM
     tr_scores, ts_scores, times = [], [], []
     for i_run in range(nb_runs):
@@ -173,7 +176,6 @@ def compare(dataset, nb_runs, flag_tsvm):
         times.append(t_fit)
 
     solution = table_print("ThunderSVM", solution, tr_scores, ts_scores, times)
-    
     print(f"Kernel matrix computed in {(time_end - time_start):.3f}")
     
 

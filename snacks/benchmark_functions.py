@@ -41,20 +41,20 @@ SEABORN_STYLE = {
 def cerr_vs_m(
     dataset, train_size, gamma, nb_iterations, nb_runs, lambda_reg, stepsize, arr_m
 ):
-    oXtr, oXts, oYtr, oYts = utils.dataloader(dataset, train_size)
+    X, y = utils.dataloader(dataset)
     cerrs_vs_m = []
     for m in arr_m:
         m = int(m)
         print(f"m = {m}, let's go ! ")
         Xtr, Ytr, Xts, Yts = utils.kernel_embedding(
-            oXtr, oYtr, oXts, oYts, m, gamma=gamma
+            X, y, m, 0.8, 'rbf', gamma=gamma
         )
-        empty = Snacks(nb_iterations=3, lambda_reg=lambda_reg, stepsize=stepsize)
+        empty = Snacks(lambda_reg, n_iter = 1)
         empty.fit(Xtr, Ytr)
         scores = []
         for n in range(nb_runs):
             model = Snacks(
-                nb_iterations=nb_iterations, lambda_reg=lambda_reg, stepsize=stepsize
+                    lambda_reg, n_iter = nb_iterations
             )
             model.fit(Xtr, Ytr)
             scores.append(1 - model.score(Xts, Yts))
@@ -63,8 +63,9 @@ def cerr_vs_m(
     cerrs_vs_m = np.array(cerrs_vs_m)
     Cerrs, Ms = cerrs_vs_m[:, 0], cerrs_vs_m[:, 1]
     sns.set_theme(style=SEABORN_STYLE, palette="colorblind")
-    ax = sns.lineplot(x=Cerrs, y=Ms, legend="auto")
-    ax.set(xlabel="m", ylabel="C-err", title=f"Dataset = {dataset}")
+    ax = sns.lineplot(x=Cerrs, y=Ms, legend="auto", markers = True)
+    ax.ticklabel_format(scilimits = [-5,4], axis = 'x')
+    ax.set(xlabel="number of Nyström points", ylabel="Classification error", title=f"Dataset = {dataset}")
     fig = ax.get_figure()
     fig.savefig(f"../figures/c_err-vs-m-{dataset}.png", bbox_inches="tight")
     del fig
@@ -278,7 +279,7 @@ if __name__ == "__main__":
     )
 
     arrg = np.logspace(-5, -1, 12)
-    arrm = np.linspace(100, 2200, 5)
+    arrm = np.linspace(50, 2400, 8)
     arrl = np.logspace(-9, -1, 40)
 
     if route == "obj_vs_it":  # peut en avoir une plus jolie
@@ -290,7 +291,7 @@ if __name__ == "__main__":
     elif route == "cerr_vs_m":
         print("Cerr VS M")  # bah ya pas de diff mdrr
         ts = time.perf_counter()
-        cerr_vs_m(data, 0.8, 1e-3, 35000, 15, 1e-6, 1.0, arrm)
+        cerr_vs_m(data, 0.8, 1e-2, 125000, 1, 1e-7, 10, arrm)
         te = time.perf_counter()
         print(f"Benchmarking done in {(te - ts):.2f} seconds")
     elif route == "cerr_vs_lmbd":

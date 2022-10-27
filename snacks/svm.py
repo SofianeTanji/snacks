@@ -2,12 +2,12 @@
 # License : GNU GPL V3
 import numpy as np
 from optimizer import Optimizer
-
+from sklearn.metrics import f1_score
 
 class Snacks:
     """Documentation"""
 
-    def __init__(self, lambda_reg, stepsize = 10, n_iter = 85000, D = 1100, K = 3, verbose=False):
+    def __init__(self, lambda_reg, stepsize = 1.5, n_iter = 120000, D = 1100, K = 10, verbose=False):
         self.verbose = verbose
         self.n_iter = n_iter
         self.lambda_reg = lambda_reg
@@ -38,11 +38,14 @@ class Snacks:
         d[d <= 0] = -1
         return d.astype(np.int32)
 
-    def score(self, X, Y):
+    def score(self, X, Y, metric = "accuracy"):
         Ypred = self.predict(X)
-        score = (Ypred == Y).sum() / len(Y)
+        if metric == "accuracy":
+            score = ((Ypred == Y).sum() / len(Y))
+        elif metric == "f1":
+            score = f1_score(Y, Ypred, average = 'binary')
         return score
-    
+
     def get_params(self, deep = True):
         return {
             "n_iter": self.n_iter,
