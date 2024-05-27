@@ -1,8 +1,5 @@
 # Snacks
  Snacks is a Python solver for Kernel Support Vector Machines. This solver comes with a companion paper.
- 
- ## Documentation
- For a more detailed description, please see the [documentation](/).
 
 ## Authors
 [Sofiane Tanji](https://sofiane-tanji.github.io)
